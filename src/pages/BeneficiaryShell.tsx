@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Bell, HeartHandshake, Home, LogOut, UserRound } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabase';
 import './beneficiary.css';
 
-export default function BeneficiaryShell({ children }: { children: React.ReactNode }) {
+export default function BeneficiaryShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [unread, setUnread] = useState(0);
