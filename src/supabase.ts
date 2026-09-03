@@ -11,7 +11,6 @@ export const supabase = createClient(
   url ?? 'https://placeholder.supabase.co',
   key ?? 'placeholder-publishable-key',
   {
-    db: { schema: 'jamaity' },
     auth: {
       persistSession: true,
       autoRefreshToken: true,
