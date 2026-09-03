@@ -1,0 +1,38 @@
+import { useEffect, useState } from 'react';
+import { Bell, HeartHandshake, Home, LogOut, UserRound } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { supabase } from '../supabase';
+
+export default function BeneficiaryShell({ children }: { children: React.ReactNode }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [unread, setUnread] = useState(0);
+  useEffect(() => {
+    let live = true;
+    const load = async () => {
+      const r = await supabase.rpc('beneficiary_notifications');
+      if (live && !r.error) setUnread(((r.data || []) as { is_read: boolean }[]).filter(x => !x.is_read).length);
+    };
+    load();
+    const timer = window.setInterval(load, 30000);
+    return () => { live = false; window.clearInterval(timer); };
+  }, [location.pathname]);
+  const logout = async () => { await supabase.auth.signOut(); navigate('/login', { replace: true }); };
+  return <div className="beneficiary-app">
+    <header className="beneficiary-topbar">
+      <button className="beneficiary-brand" onClick={() => navigate('/beneficiary-portal')}>
+        <span className="beneficiary-brandmark"><HeartHandshake size={21}/></span>
+        <span><b>جمعيتي</b><small>بوابة المستفيد</small></span>
+      </button>
+      <nav className="beneficiary-nav">
+        <button className={location.pathname==='/beneficiary-portal'?'active':''} onClick={() => navigate('/beneficiary-portal')}><Home size={18}/> الرئيسية</button>
+        <button className={location.pathname==='/beneficiary-notifications'?'active':''} onClick={() => navigate('/beneficiary-notifications')}><Bell size={18}/><span>إشعاراتي</span>{unread>0&&<b className="notification-badge">{unread>99?'99+':unread}</b>}</button>
+      </nav>
+      <div className="beneficiary-actions">
+        <span className="beneficiary-user"><UserRound size={17}/> حساب المستفيد</span>
+        <button className="beneficiary-logout" onClick={logout}><LogOut size={17}/> خروج</button>
+      </div>
+    </header>
+    {children}
+  </div>;
+}
