@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Bell, HeartHandshake, Home, LogOut, UserRound } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabase';
+import './beneficiary.css';
 
 export default function BeneficiaryShell({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
