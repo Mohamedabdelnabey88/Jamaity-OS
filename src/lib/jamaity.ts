@@ -36,7 +36,7 @@ export async function getMyCharity() {
     .limit(1)
     .maybeSingle()
   if (error) throw error
-  return (data?.charities as Charity | null) ?? null
+  return (data?.charities as unknown as Charity | null) ?? null
 }
 
 export async function getBeneficiaries(charityId: string, search = '') {
