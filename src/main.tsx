@@ -35,6 +35,7 @@ import PlatformLogin from'./pages/PlatformLogin';
 import BeneficiaryApplicationDocuments from'./pages/BeneficiaryApplicationDocuments';
 import LoginHub from'./pages/LoginHub';
 import Settings from'./pages/Settings';
+import GlobalLanding from'./pages/GlobalLanding';
 import WorkspaceFrame from'./components/WorkspaceFrame';
 import GlobalBackButton from'./components/GlobalBackButton';
 import'./styles.css';
@@ -60,6 +61,7 @@ function WorkspaceBlocked({access}:{access:AccessState|null}){const n=useNavigat
 
 function App(){const user=useAuth();const l=useLocation();const{access,loading:accessLoading}=useAccess(user);const{ok:platformOk,loading:platformLoading}=usePlatformAccess(user);
  if(user===undefined)return <main className="auth"><div className="auth-card">جاري التحقق من الجلسة…</div></main>;
+ if(l.pathname==='/'&&(!user||(!accessLoading&&!access?.workspaceEnabled)))return <GlobalLanding/>;
  if(l.pathname==='/forgot-password')return <PasswordRecovery/>;
  if(l.pathname==='/reset-password')return <PasswordReset/>;
  if(l.pathname==='/platform-login')return <PlatformLogin/>;
