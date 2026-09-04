@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { getAccessState } from '../lib/rbac';
 import AccountingVouchers from '../components/AccountingVouchers';
+import AccountingPeriods from '../components/AccountingPeriods';
 
 const money=(v:any)=>Number(v||0).toLocaleString('ar-SA',{minimumFractionDigits:2,maximumFractionDigits:2})+' ر.س';
 const tabs=[['','نظرة عامة'],['vouchers','السندات'],['receipts','سندات القبض'],['payments','سندات الصرف'],['expenses','المصروفات'],['purchases','المشتريات'],['accounts','دليل الحسابات'],['journals','القيود اليومية'],['periods','الفترات المالية'],['cost-centers','مراكز التكلفة'],['funds','الصناديق'],['budgets','الموازنات'],['reports','القوائم والتقارير']];
@@ -27,7 +28,7 @@ export default function Accounting(){
  {['vouchers','receipts','payments','expenses','purchases'].includes(tab)&&<AccountingVouchers type={({receipts:'receipt',payments:'payment',expenses:'expense',purchases:'purchase'} as Record<string,string>)[tab]} accounts={accounts} onChanged={load}/>}
  {tab==='accounts'&&<Table headers={['الكود','الحساب','النوع','الحالة']}rows={accounts.map(x=>[x.code,x.name_ar,x.account_type,x.is_active?'نشط':'موقوف'])}/>}
  {tab==='journals'&&<section className="data-card"><div className="module-toolbar"><div className="search-box"><Search/><input value={q}onChange={e=>setQ(e.target.value)}placeholder="بحث في القيود..."/></div></div><div className="table-wrap"><table><thead><tr><th>التاريخ</th><th>الوصف</th><th>المرجع</th><th>مدين</th><th>دائن</th><th/></tr></thead><tbody>{filtered.map(x=>{const d=(x.journal_lines||[]).reduce((s:number,l:any)=>s+Number(l.debit||0),0),c=(x.journal_lines||[]).reduce((s:number,l:any)=>s+Number(l.credit||0),0);return <tr key={x.id}><td>{new Date(x.entry_date||x.created_at).toLocaleDateString('ar-SA')}</td><td>{x.description}</td><td>{x.reference_type||'يدوي'}</td><td>{money(d)}</td><td>{money(c)}</td><td>{!x.reversal_of_id&&<button className="icon"onClick={()=>reverse(x.id)}title="عكس القيد"><RotateCcw/></button>}</td></tr>})}</tbody></table></div></section>}
- {tab==='periods'&&<section className="data-card"><div className="data-card-head"><strong>الفترات المالية</strong><button className="primary small"onClick={createPeriod}><Plus/> فترة جديدة</button></div><Table headers={['الفترة','البداية','النهاية','الحالة','']}rows={periods.map(x=>[x.name,new Date(x.starts_on).toLocaleDateString('ar-SA'),new Date(x.ends_on).toLocaleDateString('ar-SA'),x.status,x.status!=='closed'?<button className="secondary"onClick={()=>closePeriod(x.id)}>إقفال</button>:'مقفلة'])}/></section>}
+ {tab==='periods'&&<AccountingPeriods periods={periods} onChanged={load}/>}
  {tab==='cost-centers'&&<Dimension title="مراكز التكلفة"items={dimensions.cost_centers||[]}onCreate={()=>createDimension('cost_center')}/>}
  {tab==='funds'&&<Dimension title="الصناديق والأموال"items={dimensions.funds||[]}onCreate={()=>createDimension('fund')}fund/>}
  {tab==='budgets'&&<section className="data-card"><div className="data-card-head"><strong>الموازنات</strong><span>{budgets.length} موازنة</span></div>{!budgets.length?<div className="empty">لا توجد موازنات بعد. أنشئ فترة مالية أولًا ثم أضف الموازنة.</div>:<Table headers={['الموازنة','الفترة','الحالة','الإجمالي']}rows={budgets.map(x=>[x.name,x.period_name,x.status,money(x.total_amount)])}/>}</section>}
