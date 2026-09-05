@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { ArrowRight, CheckCircle2, Clock3, FileText, HeartHandshake, UserRound, XCircle } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../supabase';
 
 type CaseData={id:string;case_number:string;title:string;status:string;priority:string;created_at:string;updated_at:string;beneficiary_id:string;beneficiary?:{full_name:string;phone:string|null;status:string}|null};
 type Support={id:string;support_type:string;amount:number|null;quantity:number|null;status:string;notes:string|null;provided_at:string|null;created_at:string};
 const statuses:Record<string,string>={new:'جديدة',under_review:'قيد المراجعة',approved:'معتمدة',rejected:'مرفوضة',closed:'مغلقة'};
 const priorities:Record<string,string>={low:'منخفضة',medium:'متوسطة',high:'عالية',urgent:'عاجلة'};
-export default function CaseDetails(){const {id}=useParams();const nav=useNavigate();const [c,setC]=useState<CaseData|null>(null);const [support,setSupport]=useState<Support[]>([]);const [loading,setLoading]=useState(true);const [busy,setBusy]=useState(false);const [error,setError]=useState('');
+export default function CaseDetails(){const id=useLocation().pathname.split('/')[2];const nav=useNavigate();const [c,setC]=useState<CaseData|null>(null);const [support,setSupport]=useState<Support[]>([]);const [loading,setLoading]=useState(true);const [busy,setBusy]=useState(false);const [error,setError]=useState('');
 useEffect(()=>{load()},[id]);
 async function load(){if(!id)return;setLoading(true);setError('');const {data,error}=await supabase.from('cases').select('id,case_number,title,status,priority,created_at,updated_at,beneficiary_id,beneficiary:beneficiaries(full_name,phone,status)').eq('id',id).maybeSingle();if(error||!data){setError(error?.message||'الحالة غير موجودة');setLoading(false);return}setC(data as unknown as CaseData);const r=await supabase.from('support_records').select('id,support_type,amount,quantity,status,notes,provided_at,created_at').eq('case_id',id).order('created_at',{ascending:false});setSupport((r.data||[]) as Support[]);setLoading(false)}
 async function changeStatus(next:string){if(!id||!c)return;setBusy(true);setError('');const {data,error}=await supabase.rpc('transition_case',{p_case_id:id,p_status:next});if(error)setError(error.message);else if(data)setC(data as unknown as CaseData);setBusy(false)}
