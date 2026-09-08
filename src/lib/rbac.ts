@@ -17,10 +17,10 @@ export type AccessState = {
   trialDays: number | null;
 };
 
-export async function getAccessState(): Promise<AccessState> {
+export async function getAccessState(strict=false): Promise<AccessState> {
   const fallback: AccessState = { charityId: null, workspaceCharityId: null, workspaceEnabled: false, memberId: null, roleCode: null, permissions: [], charityStatus: null, subscriptionStatus: null, subscriptionRawStatus: null, subscriptionStartsAt: null, subscriptionEndsAt: null, subscriptionRemainingSeconds: null, trialDays: null };
   const { data, error } = await supabase.rpc('current_access_state');
-  if (error || !data) return fallback;
+  if (error || !data) { if(strict) throw error||new Error('تعذر تحميل الصلاحيات'); return fallback; }
   const x = data as any;
   return {
     charityId: x.charity_id ?? null,

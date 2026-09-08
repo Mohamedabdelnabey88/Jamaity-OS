@@ -1,3 +1,4 @@
+import { boundedFetch } from './lib/requests';
 import { createClient } from '@supabase/supabase-js';
 
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
@@ -13,6 +14,7 @@ export const supabase = createClient(
   url,
   key,
   {
+    global: {fetch:boundedFetch},
     auth: {
       persistSession: true,
       autoRefreshToken: true,
