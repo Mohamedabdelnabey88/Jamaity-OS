@@ -3,6 +3,18 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
+    {
+      "source": "/api/beneficiary-analysis",
+      "destination": "/api/beneficiary-analysis"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "functions": {
+    "api/beneficiary-analysis.js": {
+      "maxDuration": 60
+    }
+  }
 }
