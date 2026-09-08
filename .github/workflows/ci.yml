@@ -19,4 +19,5 @@ jobs:
         with:
           node-version: 22
       - run: npm install --ignore-scripts
+      - run: node --test tests/requests.test.mjs
       - run: npm run build
