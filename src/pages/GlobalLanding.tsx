@@ -126,9 +126,9 @@ export default function GlobalLanding(){
           <aside className="preview-sidebar"><span className="preview-logo"><HeartHandshake/></span>{[LayoutDashboard,UsersRound,WalletCards,Boxes,FileCheck2].map((Icon,index)=><span key={index} className={index===0?'active':''}><Icon/></span>)}</aside>
           <div className="preview-main">
             <div className="preview-top"><div><small>{rtl?'مساحة جمعية النور':'Al Noor workspace'}</small><b>{rtl?'صباح الخير، محمد':'Good morning, Mohammed'}</b></div><span><BellRing/></span></div>
-            <div className="preview-head"><div><span>{rtl?'لوحة القيادة':'Executive dashboard'}</span><h3>{rtl?'الصورة الكاملة، الآن.':'Clarity, right now.'}</h3></div><i>{rtl?'مباشر':'LIVE'} <b/></i></div>
+            <div className="preview-head"><div><span>{rtl?'لوحة القيادة':'Executive dashboard'}</span><h3>{rtl?'الصورة الكاملة، الآن.':'Clarity, right now.'}</h3></div><i>{rtl?'عرض توضيحي':'DEMO'} <b/></i></div>
             <div className="preview-kpis">
-              <article><span><UsersRound/></span><small>{rtl?'طلبات تحتاج مراجعة':'Intake review'}</small><strong>{rtl?'جاهزة للقرار':'Decision-ready'}</strong><em>+12%</em></article>
+              <article><span><UsersRound/></span><small>{rtl?'طلبات تحتاج مراجعة':'Intake review'}</small><strong>{rtl?'جاهزة للقرار':'Decision-ready'}</strong><em>{rtl?'مثال':'Example'}</em></article>
               <article><span><CircleDollarSign/></span><small>{rtl?'الدفاتر المالية':'Financial books'}</small><strong>{rtl?'متوازنة':'Balanced'}</strong><em><Check/></em></article>
               <article><span><FileCheck2/></span><small>{rtl?'ملف الحوكمة':'Governance file'}</small><strong>{rtl?'قابل للتدقيق':'Audit-ready'}</strong><em><ShieldCheck/></em></article>
             </div>
@@ -188,7 +188,7 @@ export default function GlobalLanding(){
       ].map(([Icon,title,body])=>{const RoleIcon=Icon as typeof BarChart3;return <article key={String(title)}><span><RoleIcon/></span><h3>{String(title)}</h3><p>{String(body)}</p><button onClick={()=>scrollTo('product')}>{t.explore}<ChevronLeft/></button></article>})}</div>
     </section>
 
-    <section className="global-cta"><div className="cta-pattern"/><div><span><Sparkles/>{rtl?'جاهز للعمل من اليوم الأول':'Ready from day one'}</span><h2>{t.ctaTitle}</h2><p>{t.ctaText}</p></div><div><button className="global-primary bright" onClick={()=>navigate('/register')}>{t.start}{rtl?<ArrowLeft/>:<ArrowRight/>}</button><button className="global-secondary dark" onClick={()=>navigate('/directory')}>{t.custom}</button></div></section>
+    <section className="global-cta"><div className="cta-pattern"/><div><span><Sparkles/>{rtl?'ابدأ باستكشاف المنصة':'Explore the platform'}</span><h2>{t.ctaTitle}</h2><p>{t.ctaText}</p></div><div><button className="global-primary bright" onClick={()=>navigate('/register')}>{t.start}{rtl?<ArrowLeft/>:<ArrowRight/>}</button><button className="global-secondary dark" onClick={()=>navigate('/directory')}>{t.custom}</button></div></section>
     <footer className="global-footer"><div className="global-brand"><span><HeartHandshake/></span><b>{rtl?'جمعيتي':'Jamaity'}</b><small>OS</small></div><p>{t.footer}</p><nav><button onClick={()=>navigate('/directory')}>{rtl?'دليل الجمعيات':'Directory'}</button><button onClick={()=>navigate('/beneficiary-login')}>{t.beneficiary}</button><button onClick={()=>navigate('/platform-login')}>{rtl?'إدارة المنصة':'Platform admin'}</button></nav><small>© 2026 Jamaity OS</small></footer>
   </main>;
 }
