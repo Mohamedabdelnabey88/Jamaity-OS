@@ -23,3 +23,8 @@
  .report-document .table-wrap{overflow:visible!important}
  .report-actions,.report-filter,.smart-assistant,.top,.back-button{display:none!important}
 }
+.report-filter{flex-wrap:wrap;align-items:end;gap:12px}
+.report-filter label{display:grid;gap:6px;min-width:140px;flex:1}
+.report-filter select,.report-filter input{width:100%;min-height:42px;padding:8px;border:1px solid #cbd8d1;border-radius:8px;background:#fff;font:inherit}
+.report-pagination{display:flex;gap:14px;align-items:center;justify-content:center;flex-wrap:wrap;margin:16px 0}
+@media print{.report-pagination{display:none!important}}

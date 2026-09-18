@@ -32,3 +32,17 @@ test('Excel round trip preserves RTL, numeric values, leading zero codes and tre
  for(const sheet of reopened.worksheets){assert.equal(sheet.views[0].rightToLeft,true);assert.match(sheet.getCell('A2').value,/2026-09-02/);}
  for(const sheet of reopened.worksheets.slice(3)){assert.equal(sheet.rowCount,6);assert.match(sheet.getCell('A5').value,/غير متاح/);}
 });
+
+test('detail exports use server totals, keep applied filters and state their page boundary',async()=>{
+ const detail={kind:'donations',page:2,page_size:50,total_rows:54,cash_amount_total:530,status:'pending',search:'REPORT',generated_at:'2026-09-18T10:00:00Z',charity:{name:'اختبار'},rows:[{reference:'0010',event_at:'2026-09-01T21:00:00Z',type:'in_kind',status:'pending',amount:null,quantity:1.125,unit:'كجم'}]};
+ const sections=reportSections(detail);
+ assert.equal(sections[0].rows[0][1],54);
+ assert.equal(sections[0].rows[1][1],1);
+ assert.equal(sections[0].rows[2][1],530);
+ assert.match(sections[1].scope,/صفحة 2/);assert.match(sections[1].scope,/REPORT/);assert.match(sections[1].scope,/الصفحة المعروضة فقط/);
+ assert.equal(sections[1].rows[0][0],'0010');assert.equal(sections[1].rows[0][4],null);assert.equal(sections[1].rows[0][5],1.125);
+ const workbook=await buildReportWorkbook(detail,{from:'2026-09-02',to:'2026-09-02'});
+ const bytes=await workbook.xlsx.writeBuffer();const restored=new ExcelJS.Workbook();await restored.xlsx.load(bytes);
+ assert.equal(restored.worksheets.length,2);assert.equal(restored.worksheets[1].getCell('F7').value,1.125);
+ assert.match(restored.worksheets[1].getCell('A5').value,/الصفحة المعروضة فقط/);
+});
