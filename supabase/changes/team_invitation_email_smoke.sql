@@ -1,0 +1,55 @@
+begin;
+do $$
+declare owner_id uuid:=gen_random_uuid();owner2 uuid:=gen_random_uuid();admin_id uuid:=gen_random_uuid();staff uuid:=gen_random_uuid();outsider uuid:=gen_random_uuid();c uuid;c2 uuid;test_role_id uuid;foreign_role uuid:=gen_random_uuid();inv jsonb;revoked jsonb;test_email text;test_code text;bad text;system_fixture uuid:=gen_random_uuid();custom_fixture uuid;perm uuid;
+begin
+ insert into auth.users(id,aud,role,email,email_confirmed_at,raw_user_meta_data,raw_app_meta_data)
+ select x,'authenticated','authenticated','staff-smoke-'||x||'@example.invalid',now(),'{}','{}' from unnest(array[owner_id,owner2,admin_id,staff,outsider]) x;
+ insert into public.platform_admins(user_id) values(admin_id);
+ perform set_config('request.jwt.claim.sub',owner_id::text,true);c:=public.register_charity('Rollback team A',null,'أبها','عسير',null);
+ perform set_config('request.jwt.claim.sub',owner2::text,true);c2:=public.register_charity('Rollback team B',null,'أبها','عسير',null);
+ perform set_config('request.jwt.claim.sub',admin_id::text,true);perform public.platform_set_charity_status(c,'approved');perform public.platform_set_charity_status(c2,'approved');
+ select id into test_role_id from public.roles where code='case_manager' and charity_id is null limit 1;
+ select charity_code into test_code from public.charities where id=c;
+ select u.email into test_email from auth.users u where id=staff;
+ insert into public.roles(id,code,name_ar,name_en,is_system,charity_id) values(foreign_role,'foreign_'||replace(foreign_role::text,'-',''),'اختبار','Test',false,c2);
+ insert into public.roles(id,code,name_ar,name_en,is_system,charity_id) values(system_fixture,'system_test_'||replace(system_fixture::text,'-',''),'نظام اختبار','System fixture',true,null);
+ select id into perm from public.permissions where code='beneficiaries.view';
+ perform set_config('request.jwt.claim.sub',owner_id::text,true);execute 'set local role authenticated';
+ custom_fixture:=public.create_custom_role('دور اختبار معزول',null);
+ perform public.set_role_permission(custom_fixture,perm,true);
+ execute 'reset role';
+ if not exists(select 1 from public.role_permissions where role_id=custom_fixture and permission_id=perm) then raise exception 'custom_permission_missing';end if;
+ execute 'set local role authenticated';
+ perform public.set_role_permission(custom_fixture,perm,false);
+ begin perform public.set_role_permission(system_fixture,perm,true);raise exception 'system_role_writable';exception when others then if sqlerrm<>'system_role_read_only' then raise;end if;end;
+ begin perform public.set_role_permission(foreign_role,perm,true);raise exception 'foreign_role_writable';exception when others then if sqlerrm<>'role_not_found' then raise;end if;end;
+ inv:=public.create_team_invitation('  '||upper(test_email)||'  ',test_role_id);
+ if length(inv->>'token')<>64 or inv->>'charity_code'<>test_code then raise exception 'bad_invitation';end if;
+ begin perform public.create_team_invitation(test_email,test_role_id);raise exception 'duplicate_allowed';exception when others then if sqlerrm<>'active_invitation_exists' then raise;end if;end;
+ foreach bad in array array['not-test_email','name@example','a b@example.invalid','a@@example.invalid',''] loop
+  begin perform public.create_team_invitation(bad,test_role_id);raise exception 'invalid_email_accepted';exception when others then if sqlerrm<>'invalid_email' then raise;end if;end;
+ end loop;
+ begin perform public.create_team_invitation('new@example.invalid',foreign_role);raise exception 'foreign_role_allowed';exception when others then if sqlerrm<>'invalid_role' then raise;end if;end;
+ execute 'reset role';
+ if not exists(select 1 from public.member_invitations where id=(inv->>'invitation_id')::uuid and charity_id=c and email=lower(btrim(test_email)) and token_hash=encode(extensions.digest(inv->>'token','sha256'),'hex')) then raise exception 'invitation_storage_wrong';end if;
+ perform set_config('request.jwt.claim.sub',outsider::text,true);execute 'set local role authenticated';
+ begin perform public.accept_staff_invitation(inv->>'token',test_code);raise exception 'wrong_email_accepted';exception when others then if sqlerrm<>'invitation_email_mismatch_or_unconfirmed' then raise;end if;end;
+ execute 'reset role';perform set_config('request.jwt.claim.sub',staff::text,true);execute 'set local role authenticated';
+ begin perform public.accept_staff_invitation(inv->>'token','JM-WRONG');raise exception 'wrong_code_accepted';exception when others then if sqlerrm<>'charity_code_mismatch' then raise;end if;end;
+ perform public.accept_staff_invitation(inv->>'token',test_code);
+ begin perform public.accept_staff_invitation(inv->>'token',test_code);raise exception 'reuse_allowed';exception when others then if sqlerrm<>'invitation_expired_or_invalid' then raise;end if;end;
+ begin perform public.create_team_invitation('forbidden@example.invalid',test_role_id);raise exception 'staff_invited';exception when others then if sqlerrm<>'forbidden' then raise;end if;end;
+ execute 'reset role';
+ if not exists(select 1 from public.charity_members m where m.user_id=staff and m.charity_id=c and m.role_id=test_role_id and status='active') then raise exception 'membership_missing';end if;
+ perform set_config('request.jwt.claim.sub',owner_id::text,true);execute 'set local role authenticated';
+ begin perform public.create_team_invitation(test_email,test_role_id);raise exception 'member_reinvited';exception when others then if sqlerrm<>'user_already_member' then raise;end if;end;
+ revoked:=public.create_team_invitation('staff-smoke-'||outsider||'@example.invalid',test_role_id);
+ perform public.revoke_staff_invitation((revoked->>'invitation_id')::uuid);
+ execute 'reset role';perform set_config('request.jwt.claim.sub',outsider::text,true);execute 'set local role authenticated';
+ begin perform public.accept_staff_invitation(revoked->>'token',test_code);raise exception 'revoked_accepted';exception when others then if sqlerrm<>'invitation_expired_or_invalid' then raise;end if;end;
+ execute 'reset role';execute 'set local role anon';
+ begin perform public.create_team_invitation('anon@example.invalid',test_role_id);raise exception 'anon_invited';exception when insufficient_privilege then null;end;
+ execute 'reset role';
+end $$;
+select 'PASS: email validation, normalization, duplicate protection, tenant role, acceptance, email/code mismatch, reuse, revoke anon/staff permissions, custom role editing and shared/foreign role protection' result;
+rollback;
