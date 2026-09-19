@@ -2,7 +2,9 @@ begin;
 do $$
 declare u uuid:=gen_random_uuid();u2 uuid:=gen_random_uuid();c uuid;c2 uuid;admin_id uuid;donor uuid:=gen_random_uuid();beneficiary uuid:=gen_random_uuid();r uuid:=gen_random_uuid();result jsonb;first_ids text[];second_ids text[];
 begin
- select user_id into admin_id from public.platform_admins where status='active' and role='super_admin' limit 1;
+ admin_id:=gen_random_uuid();
+ insert into auth.users(id,aud,role,email,email_confirmed_at,raw_user_meta_data,raw_app_meta_data) values(admin_id,'authenticated','authenticated','report-admin-'||admin_id||'@example.invalid',now(),'{}','{}');
+ insert into public.platform_admins(user_id,role,status) values(admin_id,'super_admin','active');
  insert into auth.users(id,aud,role,email,email_confirmed_at,raw_user_meta_data,raw_app_meta_data)
  select x,'authenticated','authenticated','report-smoke-'||x||'@example.invalid',now(),'{}','{}' from unnest(array[u,u2]) x;
  perform set_config('request.jwt.claim.sub',u::text,true);c:=public.register_charity('Report rollback A',null,'أبها','عسير',null);
@@ -15,7 +17,9 @@ begin
  values(c,donor,'cash',999,'previous','pending','2026-09-01T23:59:59+03'),(c,donor,'cash',999,'following','pending','2026-09-03T00:00:00+03'),(c,donor,'in_kind',500,'literal%_','pending','2026-09-02T15:00:00+03');
  insert into public.beneficiaries(id,charity_id,full_name) values(beneficiary,c,'Synthetic private name');
  insert into public.support_records(charity_id,beneficiary_id,support_type,amount,status,created_at,notes)
- values(c,beneficiary,'financial',75,'pending','2026-09-02T12:00:00+03','private note');
+ values(c,beneficiary,'financial',75,'pending','2026-09-02T12:00:00+03','private note'),
+ (c,beneficiary,'cash',125,'pending','2026-09-02T13:00:00+03','private note'),
+ (c,beneficiary,'in_kind',900,'pending','2026-09-02T14:00:00+03','private note');
  perform set_config('request.jwt.claim.sub',u::text,true);execute 'set local role authenticated';
  result:=public.operational_report_page('donations','2026-09-02T00:00:00+03','2026-09-02T23:59:59.999999+03','pending');
  if (result->>'total_rows')::int<>54 or (result->>'cash_amount_total')::numeric<>530 or jsonb_array_length(result->'rows')<>50 then raise exception 'wrong_donation_totals';end if;
@@ -28,8 +32,10 @@ begin
  result:=public.operational_report_page('donations','2026-09-02T00:00:00+03','2026-09-02T23:59:59.999999+03','rejected');
  if (result->>'total_rows')::int<>0 then raise exception 'wrong_status_filter';end if;
  result:=public.operational_report_page('support','2026-09-02T00:00:00+03','2026-09-02T23:59:59.999999+03');
- if (result->>'cash_amount_total')::numeric<>75 or (result->>'total_rows')::int<>1 then raise exception 'wrong_support_totals';end if;
+ if (result->>'cash_amount_total')::numeric<>200 or (result->>'total_rows')::int<>3 then raise exception 'wrong_support_totals';end if;
  if result::text like '%private note%' or result::text like '%Synthetic private name%' or (result->'rows'->0)?'beneficiary_id' then raise exception 'private_data_in_export';end if;
+ result:=public.operational_report_page('support','2026-09-02T00:00:00+03','2026-09-02T23:59:59.999999+03',null,'',2,1);
+ if (result->>'cash_amount_total')::numeric<>200 or jsonb_array_length(result->'rows')<>1 then raise exception 'support_total_depends_on_page';end if;
  begin perform public.operational_report_page('support',now(),now(),null,'',0);raise exception 'bad_page_accepted';exception when others then if sqlerrm<>'invalid_pagination' then raise;end if;end;
  begin perform public.operational_report_page('support',null,now());raise exception 'bad_dates_accepted';exception when others then if sqlerrm<>'invalid_period' then raise;end if;end;
  execute 'reset role';perform set_config('request.jwt.claim.sub',u2::text,true);execute 'set local role authenticated';
