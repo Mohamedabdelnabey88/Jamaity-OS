@@ -4,7 +4,7 @@ import { supabase } from '../supabase';
 import { friendlyError } from '../lib/requests';
 import { readWithDeadline } from '../lib/readWithDeadline';
 import { reportPeriod, saudiToday } from '../lib/reportPeriod';
-import { reportSections, reportDateTime, reportLabels } from '../lib/reportExport';
+import { reportSections, reportDateTime, reportLabels, downloadReportExcel } from '../lib/reportExport';
 import './reports.css';
 
 type Kind='summary'|'donations'|'support';
@@ -30,7 +30,7 @@ export default function Reports(){
  },[applied]);
  useEffect(()=>{void load();return()=>{request.current++;active.current?.abort();};},[load]);
  function submit(e:React.FormEvent){e.preventDefault();if(exporting)return;try{reportPeriod(from,to);setApplied({from,to,kind,status,search:search.trim(),page:1});}catch(e){request.current++;active.current?.abort();setLoading(false);setData(null);setError(friendlyError(e));}}
- async function excel(){if(!data||exporting||loading)return;setExporting(true);setExportError('');try{const {downloadReportExcel}=await import('../lib/reportExport');await downloadReportExcel(data,applied);}catch{setExportError('تعذر إنشاء ملف Excel. أعد المحاولة.');}finally{setExporting(false);}}
+ async function excel(){if(!data||exporting||loading)return;setExporting(true);setExportError('');try{await downloadReportExcel(data,applied);}catch{setExportError('تعذر إنشاء ملف Excel. أعد المحاولة.');}finally{setExporting(false);}}
  const statuses=kind==='donations'?['pledged','pending','approved','received','rejected','cancelled']:['requested','pending','approved','provided','rejected','cancelled'];
  const detail=applied.kind!=='summary';
  const pages=data?Math.max(1,Math.ceil(Number(data.total_rows||0)/50)):1;
