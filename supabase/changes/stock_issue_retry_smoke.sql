@@ -1,0 +1,47 @@
+begin;
+do $$
+declare u2 uuid:=gen_random_uuid();c2 uuid;w2 uuid:=gen_random_uuid();i2 uuid:=gen_random_uuid();test_role uuid:=gen_random_uuid();u uuid:=gen_random_uuid(); admin_id uuid:=gen_random_uuid();c uuid;b uuid:=gen_random_uuid();w uuid:=gen_random_uuid();i uuid:=gen_random_uuid();s uuid;s2 uuid;first_result jsonb;retry_result jsonb;
+begin
+ insert into auth.users(id,aud,role,email,email_confirmed_at,raw_user_meta_data,raw_app_meta_data)
+ select x,'authenticated','authenticated','stock-smoke-'||x||'@example.invalid',now(),'{}','{}' from unnest(array[u,u2,admin_id])x;
+ insert into public.platform_admins(user_id) values(admin_id);
+ perform set_config('request.jwt.claim.sub',u::text,true);c:=public.register_charity('Rollback stock issue',null,'أبها','عسير',null);
+ perform set_config('request.jwt.claim.sub',u2::text,true);c2:=public.register_charity('Rollback other stock',null,'أبها','عسير',null);
+ perform set_config('request.jwt.claim.sub',admin_id::text,true);perform public.platform_set_charity_status(c,'approved');perform public.platform_set_charity_status(c2,'approved');
+ insert into public.beneficiaries(id,charity_id,full_name) values(b,c,'Synthetic beneficiary');
+ insert into public.warehouses(id,charity_id,name_ar) values(w,c,'Synthetic warehouse');
+ insert into public.inventory_items(id,charity_id,name_ar) values(i,c,'Synthetic item');
+ insert into public.warehouses(id,charity_id,name_ar) values(w2,c2,'Other warehouse');
+ insert into public.inventory_items(id,charity_id,name_ar) values(i2,c2,'Other item');
+ insert into public.stock_movements(charity_id,warehouse_id,item_id,movement_type,quantity) values(c,w,i,'receipt',5);
+ perform set_config('request.jwt.claim.sub',u::text,true);execute 'set local role authenticated';
+ perform public.accounting_initialize();
+ select id into s from public.create_support_request(b,'in_kind',100,3,null,null,'stock-a');
+ select id into s2 from public.create_support_request(b,'in_kind',100,3,null,null,'stock-b');
+ perform public.approve_support(s);perform public.approve_support(s2);
+ begin perform public.issue_in_kind(w2,i,1,s);raise exception 'foreign_warehouse_allowed';exception when others then if sqlerrm<>'warehouse_not_found' then raise;end if;end;
+ begin perform public.issue_in_kind(w,i2,1,s);raise exception 'foreign_item_allowed';exception when others then if sqlerrm<>'item_not_found' then raise;end if;end;
+ first_result:=public.issue_in_kind(w,i,3,s);
+ retry_result:=public.issue_in_kind(w,i,3,s);
+ if retry_result->>'movement_id' is distinct from first_result->>'movement_id' or retry_result->>'journal_entry_id' is distinct from first_result->>'journal_entry_id' or retry_result->>'already_executed'<>'true' then raise exception 'retry_did_not_return_original';end if;
+ begin perform public.issue_in_kind(w,i,2,s);raise exception 'conflicting_retry_accepted';exception when others then if sqlerrm<>'support_issue_conflict' then raise;end if;end;
+ begin perform public.issue_in_kind(w,i,3,s2);raise exception 'overspend_accepted';exception when others then if sqlerrm<>'insufficient_stock' then raise;end if;end;
+ begin perform public.issue_in_kind(w,i,'NaN'::numeric,s2);raise exception 'nan_accepted';exception when others then if sqlerrm<>'quantity_must_be_positive' then raise;end if;end;
+ begin perform public.issue_in_kind(w,i,null,s2);raise exception 'null_accepted';exception when others then if sqlerrm<>'quantity_must_be_positive' then raise;end if;end;
+ execute 'reset role';
+ if (select count(*) from public.stock_movements where reference_id=s and movement_type='issue')<>1 then raise exception 'duplicate_movement';end if;
+ if (select count(*) from public.journal_entries where reference_id=s and reference_type='support')<>1 then raise exception 'duplicate_journal';end if;
+ if (select count(*) from public.support_events where support_record_id=s and event_type='executed')<>1 then raise exception 'duplicate_event';end if;
+ if not exists(select 1 from public.support_records where id=s2 and approval_status='approved') then raise exception 'rejected_issue_changed_support';end if;
+ insert into public.roles(id,code,name_ar,name_en,is_system,charity_id) values(test_role,'stock_'||replace(test_role::text,'-',''),'اختبار','Test',false,c);
+ insert into public.role_permissions(role_id,permission_id) select test_role,id from public.permissions where code='support.approve';
+ update public.charity_members set role_id=test_role where charity_id=c and user_id=u;
+ execute 'set local role authenticated';
+ begin perform public.issue_in_kind(w,i,1,s2);raise exception 'approver_can_issue';exception when others then if sqlerrm<>'permission_denied' then raise;end if;end;
+ execute 'reset role';
+ execute 'set local role anon';
+ begin perform public.issue_in_kind(w,i,1,s2);raise exception 'anon_allowed';exception when insufficient_privilege then null;end;
+ execute 'reset role';
+end $$;
+select 'PASS: exact replay, conflicting replay, one stock movement/journal/event, stock limit, invalid quantities, cross-tenant warehouse/item denial, approval-only and anon denial' result;
+rollback;
