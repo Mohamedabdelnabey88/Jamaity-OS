@@ -14,7 +14,7 @@ type CaseRow = {
 };
 
 const statusLabels: Record<string,string> = { new:'جديدة', under_review:'قيد المراجعة', approved:'معتمدة', rejected:'مرفوضة', closed:'مغلقة' };
-const priorityLabels: Record<string,string> = { low:'منخفضة', medium:'متوسطة', high:'عالية', urgent:'عاجلة' };
+const priorityLabels: Record<string,string> = { low:'منخفضة', normal:'عادية', high:'عالية', critical:'حرجة' };
 
 export default function Cases(){
   const navigate=useNavigate();

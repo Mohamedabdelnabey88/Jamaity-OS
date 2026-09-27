@@ -1103,3 +1103,20 @@
   color:var(--ws-brand-strong)!important;
   font-weight:800;
 }
+
+.case-create-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(340px,.85fr);gap:14px}
+.case-beneficiary-picker,.case-create-fields{padding:16px}
+.case-beneficiary-list{display:grid;gap:7px;margin-top:10px;max-height:460px;overflow:auto;padding-left:3px}
+.case-beneficiary{
+  width:100%;min-height:62px;padding:9px 10px!important;
+  display:grid!important;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;
+  border:1px solid var(--ws-line)!important;border-radius:11px!important;background:#fff!important;text-align:right;
+}
+.case-beneficiary:hover{border-color:#b9d0c6!important;background:#fbfdfc!important}
+.case-beneficiary.selected{border-color:#8ebdac!important;background:var(--ws-brand-soft)!important;box-shadow:0 0 0 2px rgba(11,106,88,.06)}
+.case-beneficiary>span:nth-child(2){display:grid;gap:2px}
+.case-beneficiary b{font-size:12px;color:var(--ws-ink)}
+.case-beneficiary small{font-size:9px;color:var(--ws-muted)}
+.case-beneficiary i{font-style:normal;font-size:9px;font-weight:800;color:var(--ws-brand)}
+.case-create-fields{display:grid;gap:14px}
+@media(max-width:900px){.case-create-grid{grid-template-columns:1fr}}

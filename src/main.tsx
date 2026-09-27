@@ -22,6 +22,7 @@ const Reports=lazy(()=>import('./pages/Reports'));
 const Notifications=lazy(()=>import('./pages/Notifications'));
 const Cases=lazy(()=>import('./pages/Cases'));
 const CaseDetails=lazy(()=>import('./pages/CaseDetails'));
+const CaseCreate=lazy(()=>import('./pages/CaseCreate'));
 const Support=lazy(()=>import('./pages/Support'));
 const Donors=lazy(()=>import('./pages/Donors'));
 const Donations=lazy(()=>import('./pages/Donations'));
@@ -158,6 +159,7 @@ function App(){const user=useAuth();const l=useLocation();const{access,loading:a
    :path.startsWith('/beneficiaries/')?<Protected ok={allowed(access,['beneficiaries.view','beneficiaries.manage'],['owner','admin'])}><BeneficiaryDetails/></Protected>
    :path==='/beneficiary-applications'?<Protected ok={allowed(access,['beneficiaries.view','beneficiaries.manage'],['owner','admin'])}><BeneficiaryApplications/></Protected>
    :path==='/cases'?<Protected ok={allowed(access,['cases.view','cases.manage'],['owner','admin'])}><Cases/></Protected>
+   :path==='/cases/new'?<Protected ok={allowed(access,['cases.manage'],['owner','admin'])}><CaseCreate/></Protected>
    :path.startsWith('/cases/')?<Protected ok={allowed(access,['cases.view','cases.manage'],['owner','admin'])}><CaseDetails/></Protected>
    :path==='/support'?<Protected ok={allowed(access,['support.manage','support.approve'],['owner','admin'])}><Support/></Protected>
    :path==='/donors'?<Protected ok={allowed(access,['donors.view','donors.manage'],['owner','admin'])}><Donors/></Protected>
