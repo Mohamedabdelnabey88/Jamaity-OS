@@ -4,6 +4,7 @@ import {Building2,UserPlus} from 'lucide-react';
 import {supabase} from '../supabase';
 import {friendlyError} from '../lib/requests';
 import LogoutButton from '../components/LogoutButton';
+import PasswordInput from '../components/PasswordInput';
 
 export default function StaffAccess(){
  const {search}=useLocation(),params=new URLSearchParams(search);
@@ -65,8 +66,8 @@ export default function StaffAccess(){
       <label>رقم الجوال <span style={{fontWeight:400}}>(اختياري)</span><input dir="ltr" inputMode="tel" value={phone} onChange={e=>setPhone(e.target.value)} autoComplete="tel" placeholder="05xxxxxxxx"/></label>
      </>}
      <label>البريد الإلكتروني<input required type="email" value={email} onChange={e=>setEmail(e.target.value)} autoComplete="username" placeholder="employee@example.com"/></label>
-     <label>{register?'اختر كلمة المرور':'كلمة المرور'}<input required type="password" minLength={8} value={password} onChange={e=>setPassword(e.target.value)} autoComplete={register?'new-password':'current-password'} placeholder="8 أحرف على الأقل"/></label>
-     {register&&<label>تأكيد كلمة المرور<input required type="password" minLength={8} value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} autoComplete="new-password"/></label>}
+     <label>{register?'اختر كلمة المرور':'كلمة المرور'}<PasswordInput required minLength={8} value={password} onChange={e=>setPassword(e.target.value)} autoComplete={register?'new-password':'current-password'} placeholder="8 أحرف على الأقل"/></label>
+     {register&&<label>تأكيد كلمة المرور<PasswordInput required minLength={8} value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} autoComplete="new-password"/></label>}
     </>
    }
    {error&&<p className="error" role="alert">{error}</p>}
