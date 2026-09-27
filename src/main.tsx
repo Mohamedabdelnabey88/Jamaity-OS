@@ -47,6 +47,7 @@ import GlobalBackButton from'./components/GlobalBackButton';
 import'./styles.css';
 import'./core.css';
 import './account.css';
+import './workspace-ui.css';
 
 const A={brand:'جمعيتي',tag:'تشغيل ذكي للعمل الخيري',login:'دخول',register:'إنشاء حساب',directory:'دليل الجمعيات',dashboard:'لوحة التحكم',beneficiaries:'المستفيدون',applications:'طلبات الانضمام',cases:'الحالات',support:'الدعم',donations:'التبرعات',donors:'المتبرعون',updates:'تطورات الجمعية',team:'الفريق',accounting:'المحاسبة',inventory:'المخزون'};
 type Charity={id:string;name_ar:string;name_en:string|null;city:string|null;region:string|null;status:string};
@@ -68,7 +69,59 @@ function allowed(a:AccessState|null,codes:string[],roles:string[]=[]){if(!a?.wor
 
 function Header({user,access}:{user:any;access:AccessState|null}){const n=useNavigate();const[open,setOpen]=useState(false);return <header className="top"><button className="icon mobile"onClick={()=>setOpen(!open)}>{open?<X/>:<Menu/>}</button><button className="brand"onClick={()=>n('/')}><span className="brandmark"><HeartHandshake/></span><span><b>{A.brand}</b><small>{A.tag}</small></span></button><nav className={open?'nav open':'nav'}>{user&&access?.workspaceEnabled?<><button onClick={()=>n('/dashboard')}>{A.dashboard}</button>{allowed(access,['beneficiaries.view','beneficiaries.manage'],['owner','admin'])&&<button onClick={()=>n('/beneficiaries')}>{A.beneficiaries}</button>}{allowed(access,['beneficiaries.view','beneficiaries.manage'],['owner','admin'])&&<button onClick={()=>n('/beneficiary-applications')}>{A.applications}</button>}{allowed(access,['cases.view','cases.manage'],['owner','admin'])&&<button onClick={()=>n('/cases')}>{A.cases}</button>}{allowed(access,['support.manage','support.approve'],['owner','admin'])&&<button onClick={()=>n('/support')}>{A.support}</button>}{allowed(access,['donors.view','donors.manage'],['owner','admin'])&&<button onClick={()=>n('/donors')}>{A.donors}</button>}{allowed(access,['donations.manage'],['owner','admin','finance','donor_manager'])&&<button onClick={()=>n('/donations')}>{A.donations}</button>}{allowed(access,['updates.manage'],['owner','admin','content_manager'])&&<button onClick={()=>n('/updates')}>{A.updates}</button>}{allowed(access,['inventory.manage'],['owner','admin'])&&<button onClick={()=>n('/inventory')}>{A.inventory}</button>}{allowed(access,['audit.view','donations.manage'],['owner','admin','finance'])&&<button onClick={()=>n('/accounting')}>{A.accounting}</button>}{allowed(access,['governance.view','governance.manage'],['owner','admin'])&&<button onClick={()=>n('/governance')}>الحوكمة</button>}{allowed(access,['approvals.view','approvals.manage'],['owner','admin'])&&<button onClick={()=>n('/approvals')}>الموافقات</button>}{allowed(access,['reports.view'],['owner','admin','finance'])&&<button onClick={()=>n('/reports')}>التقارير</button>}{allowed(access,['team.manage','members.manage','roles.manage'],['owner','admin'])&&<button onClick={()=>n('/team')}>{A.team}</button>}</>:<button onClick={()=>n('/directory')}>{A.directory}</button>}</nav><div className="top-actions">{user?<><button className="icon"onClick={()=>n('/notifications')}title="الإشعارات"><Bell/></button><LogoutButton/></>:<><button className="ghost"onClick={()=>n('/login')}>{A.login}</button><button className="primary small"onClick={()=>n('/register')}>{A.register}</button></>}</div></header>}
 
-function WorkspaceHeader({access}:{access:AccessState|null}){const n=useNavigate();const[profile,setProfile]=useState<any>(null),[open,setOpen]=useState(false);useEffect(()=>{supabase.rpc('charity_profile').then(r=>{if(!r.error)setProfile(r.data)})},[]);const links=[['/dashboard','لوحة التحكم'],['/beneficiaries','المستفيدون'],['/beneficiary-applications','طلبات الانضمام'],['/support','المساعدات'],['/settings','موقع الجمعية'],['/team','الموظفون والأدوار'],['/updates','المركز الإعلامي'],['/donors','المتبرعون'],['/donations','التبرعات'],['/inventory','المخزون'],['/accounting','المحاسبة'],['/governance','الحوكمة'],['/approvals','الموافقات'],['/reports','التقارير']];return <header className="top workspace-header"><button className="icon mobile" onClick={()=>setOpen(!open)}>{open?<X/>:<Menu/>}</button><button className="brand charity-brand" onClick={()=>n('/account')}><span className="brandmark">{profile?.logo_url?<img src={profile.logo_url} alt=""/>:<Building2/>}</span><span><b>{profile?.name_ar||'حساب الجمعية'}</b><small>{profile?.city||'مساحة العمل'}</small></span></button><nav className={open?'nav open':'nav'}>{links.map(([path,label])=><button key={path} onClick={()=>{setOpen(false);n(path)}}>{label}</button>)}</nav><div className="top-actions"><button className="charity-account" onClick={()=>n('/account')}><span>{profile?.logo_url?<img src={profile.logo_url} alt=""/>:<Building2/>}</span><b>حساب الجمعية</b></button><button className="icon" onClick={()=>n('/notifications')}><Bell aria-label="الإشعارات"/></button><LogoutButton/></div></header>}
+function WorkspaceHeader({access}:{access:AccessState|null}){
+ const n=useNavigate(),location=useLocation();const[profile,setProfile]=useState<any>(null),[open,setOpen]=useState(false);
+ useEffect(()=>{supabase.rpc('charity_profile').then(r=>{if(!r.error)setProfile(r.data)})},[]);
+ const active=(path:string)=>location.pathname===path||location.pathname.startsWith(path+'/');
+ const groups=[
+  {label:'المستفيدون والخدمات',items:[
+   {path:'/beneficiaries',label:'المستفيدون',desc:'الملفات والسجل',ok:allowed(access,['beneficiaries.view','beneficiaries.manage'],['owner','admin'])},
+   {path:'/beneficiary-applications',label:'طلبات الانضمام',desc:'مراجعة الطلبات',ok:allowed(access,['beneficiaries.view','beneficiaries.manage'],['owner','admin'])},
+   {path:'/cases',label:'الحالات',desc:'إدارة رحلة الحالة',ok:allowed(access,['cases.view','cases.manage'],['owner','admin'])},
+   {path:'/support',label:'المساعدات',desc:'الاعتماد والتنفيذ',ok:allowed(access,['support.manage','support.approve'],['owner','admin'])},
+  ]},
+  {label:'الموارد والمالية',items:[
+   {path:'/donors',label:'المتبرعون',desc:'علاقات المتبرعين',ok:allowed(access,['donors.view','donors.manage'],['owner','admin'])},
+   {path:'/donations',label:'التبرعات',desc:'النقدي والعيني',ok:allowed(access,['donations.manage'],['owner','admin','finance','donor_manager'])},
+   {path:'/inventory',label:'المخزون',desc:'الأصناف والحركة',ok:allowed(access,['inventory.manage'],['owner','admin'])},
+   {path:'/accounting',label:'المحاسبة',desc:'القيود والقوائم',ok:allowed(access,['accounting.view','accounting.manage','audit.view'],['owner','admin','finance'])},
+  ]},
+  {label:'الحوكمة والإدارة',items:[
+   {path:'/governance',label:'الحوكمة',desc:'المتطلبات والأدلة',ok:allowed(access,['governance.view','governance.manage'],['owner','admin'])},
+   {path:'/approvals',label:'الموافقات',desc:'مسارات القرار',ok:allowed(access,['approvals.view','approvals.manage'],['owner','admin'])},
+   {path:'/reports',label:'التقارير',desc:'التحليل والتصدير',ok:allowed(access,['reports.view'],['owner','admin','finance'])},
+   {path:'/team',label:'الفريق والصلاحيات',desc:'الموظفون والأدوار',ok:allowed(access,['team.manage','members.manage','roles.manage'],['owner','admin'])},
+  ]},
+  {label:'الحضور الرقمي',items:[
+   {path:'/settings',label:'موقع الجمعية',desc:'الهوية والمحتوى',ok:allowed(access,['onboarding.manage'])},
+   {path:'/updates',label:'المركز الإعلامي',desc:'الأخبار والتحديثات',ok:allowed(access,['updates.manage'],['owner','admin','content_manager'])},
+  ]},
+ ].map(g=>({...g,items:g.items.filter(i=>i.ok)})).filter(g=>g.items.length);
+ return <header className="top workspace-header">
+  <button className="icon mobile" onClick={()=>setOpen(!open)} aria-label={open?'إغلاق قائمة مساحة العمل':'فتح قائمة مساحة العمل'}>{open?<X/>:<Menu/>}</button>
+  <button className="brand charity-brand" onClick={()=>n('/dashboard')}>
+   <span className="brandmark">{profile?.logo_url?<img src={profile.logo_url} alt=""/>:<Building2/>}</span>
+   <span><b>{profile?.name_ar||'حساب الجمعية'}</b><small>{profile?.city||'مساحة العمل'}</small></span>
+  </button>
+  <nav className={open?'nav workspace-nav open':'nav workspace-nav'}>
+   <button className={active('/dashboard')?'workspace-nav-home active':'workspace-nav-home'} onClick={()=>{setOpen(false);n('/dashboard')}}>لوحة التحكم</button>
+   {groups.map(group=><details className="workspace-menu" key={group.label}>
+    <summary>{group.label}</summary>
+    <div className="workspace-menu-panel">
+     {group.items.map(item=><button key={item.path} className={active(item.path)?'active':''} onClick={e=>{(e.currentTarget.closest('details') as HTMLDetailsElement|null)?.removeAttribute('open');setOpen(false);n(item.path)}}>
+      <span><b>{item.label}</b><small>{item.desc}</small></span>
+      <ArrowLeft size={15}/>
+     </button>)}
+    </div>
+   </details>)}
+  </nav>
+  <div className="top-actions workspace-actions">
+   <button className="icon" onClick={()=>n('/notifications')} aria-label="الإشعارات" title="الإشعارات"><Bell/></button>
+   <button className="charity-account" onClick={()=>n('/account')}><span>{profile?.logo_url?<img src={profile.logo_url} alt=""/>:<Building2/>}</span><b>حساب الجمعية</b></button>
+   <LogoutButton/>
+  </div>
+ </header>
+}
 
 function Protected({ok,children}:{ok:boolean;children:React.ReactNode}){return ok?<>{children}</>:<Forbidden/>}
 function Forbidden(){return <main className="auth"><div className="auth-card"><div className="auth-icon"><ShieldCheck/></div><h1>لا تملك صلاحية الوصول</h1><p>هذه الصفحة غير متاحة لصلاحيات حسابك الحالية.</p></div></main>}
