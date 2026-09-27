@@ -79,3 +79,51 @@ input,select,textarea{
   .modal-backdrop{place-items:end center;padding:8px}
   .modal{width:100%;max-height:calc(100dvh - 16px);border-radius:18px}
 }
+
+
+/* App boot shell: prevents legacy/public UI flashes while auth and RBAC resolve */
+.app-boot{
+  min-height:100dvh;
+  display:grid;
+  place-items:center;
+  padding:24px;
+  background:
+    radial-gradient(circle at 80% 14%,rgba(11,106,88,.09),transparent 26%),
+    linear-gradient(180deg,#f7faf8 0%,#f3f7f5 100%);
+}
+.app-boot-card{
+  width:min(420px,calc(100vw - 32px));
+  padding:22px 24px;
+  display:grid;
+  grid-template-columns:auto 1fr;
+  align-items:center;
+  gap:14px;
+  border:1px solid rgba(11,106,88,.10);
+  border-radius:20px;
+  background:rgba(255,255,255,.94);
+  box-shadow:0 16px 46px rgba(20,61,50,.08);
+  backdrop-filter:blur(14px);
+  position:relative;
+  overflow:hidden;
+}
+.app-boot-mark{
+  width:48px;height:48px;border-radius:14px;
+  display:grid;place-items:center;
+  background:var(--green);color:#fff;
+}
+.app-boot-mark svg{width:24px}
+.app-boot-card>div:nth-child(2){display:grid;gap:2px}
+.app-boot-card b{font-size:17px;color:var(--ink)}
+.app-boot-card span{font-size:12px;color:var(--muted)}
+.app-boot-card>i{
+  position:absolute;right:0;bottom:0;height:3px;width:42%;
+  background:linear-gradient(90deg,transparent,var(--green),transparent);
+  animation:app-boot-slide 1.2s ease-in-out infinite;
+}
+@keyframes app-boot-slide{
+  0%{transform:translateX(150%)}
+  100%{transform:translateX(-320%)}
+}
+@media(prefers-reduced-motion:reduce){
+  .app-boot-card>i{animation:none;width:100%;opacity:.35}
+}
