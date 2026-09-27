@@ -1187,3 +1187,64 @@
   .inventory-tabs{width:100%}
   .inventory-tab{flex:1;justify-content:center}
 }
+
+
+/* Global Arabic typography refinement */
+.workspace-frame,
+.workspace-header,
+.workspace-tools,
+.workspace-frame button,
+.workspace-frame input,
+.workspace-frame select,
+.workspace-frame textarea,
+.workspace-header button,
+.workspace-header input,
+.workspace-header select{
+  font-family:var(--font-ar);
+}
+.workspace-frame .module-head h1,
+.workspace-frame .dash-head h1{
+  font-weight:800;
+  line-height:1.35;
+  letter-spacing:0;
+}
+.workspace-frame .data-card-head strong,
+.workspace-frame .panel h2,
+.workspace-frame .panel h3,
+.workspace-frame .kpi strong,
+.workspace-frame .stat-card strong{
+  font-weight:700;
+  letter-spacing:0;
+}
+.workspace-frame .data-card-head span,
+.workspace-frame .module-head p,
+.workspace-frame .dash-head p,
+.workspace-frame .support-main small,
+.workspace-frame .permission-copy>small,
+.workspace-frame .inventory-sub,
+.workspace-frame .inventory-empty p{
+  line-height:1.75;
+}
+.workspace-frame .data-card-head strong{font-size:15px}
+.workspace-frame .data-card-head span{font-size:12px}
+.workspace-frame .support-main b,
+.workspace-frame td,
+.workspace-frame label,
+.workspace-frame input,
+.workspace-frame select,
+.workspace-frame textarea{font-size:13px}
+.workspace-frame .support-main small,
+.workspace-frame .status,
+.workspace-frame .workflow,
+.workspace-frame .eyebrow{font-size:11px}
+.workspace-header .workspace-nav-home,
+.workspace-header .workspace-menu-trigger{font-size:13px;font-weight:700}
+.workspace-header .workspace-menu-panel button b{font-size:13px;font-weight:700}
+.workspace-header .workspace-menu-panel button small{font-size:11px;line-height:1.6}
+.workspace-frame .modal-head b{font-size:16px;font-weight:700}
+.workspace-frame .modal-head span{font-size:12px;line-height:1.7}
+.workspace-frame .primary,
+.workspace-frame .secondary,
+.workspace-frame button{font-weight:600}
+.workspace-frame svg,
+.workspace-header svg{flex:0 0 auto}
