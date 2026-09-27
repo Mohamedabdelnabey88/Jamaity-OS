@@ -7,14 +7,14 @@ import LogoutButton from '../components/LogoutButton';
 
 export default function StaffAccess(){
  const {search}=useLocation(),params=new URLSearchParams(search);
- const initialCode=params.get('code')||'',initialToken=params.get('invite')||'';
- const [code,setCode]=useState(initialCode),[token,setToken]=useState(initialToken),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[confirmPassword,setConfirmPassword]=useState(''),[name,setName]=useState(''),[phone,setPhone]=useState(''),[register,setRegister]=useState(true),[sessionEmail,setSessionEmail]=useState<string|null>(null),[ready,setReady]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
+ const token=params.get('invite')||'';
+ const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[confirmPassword,setConfirmPassword]=useState(''),[name,setName]=useState(''),[phone,setPhone]=useState(''),[register,setRegister]=useState(true),[sessionEmail,setSessionEmail]=useState<string|null>(null),[ready,setReady]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
 
  useEffect(()=>{let live=true;supabase.auth.getUser().then(r=>{if(live){setSessionEmail(r.data.user?.email||null);setReady(true)}}).catch(()=>{if(live){setReady(true);setError('تعذر التحقق من الجلسة.')}});return()=>{live=false}},[]);
 
  async function submit(e:React.FormEvent){
   e.preventDefault();setError('');setMessage('');
-  if(!code.trim()||!token.trim()){setError('رابط الدعوة غير مكتمل. اطلب من الجمعية إرسال رابط دعوة جديد.');return}
+  if(!token.trim()){setError('رابط الدعوة غير صالح أو غير مكتمل. اطلب من الجمعية إرسال رابط دعوة جديد.');return}
   if(!sessionEmail&&register){
    if(!name.trim()){setError('أدخل الاسم الكامل.');return}
    if(password.length<8){setError('كلمة المرور يجب ألا تقل عن 8 أحرف.');return}
@@ -45,22 +45,18 @@ export default function StaffAccess(){
     setSessionEmail(email.trim());
    }
 
-   const r=await supabase.rpc('accept_staff_invitation',{p_token:token.trim(),p_charity_code:code.trim()});
+   const r=await supabase.rpc('accept_staff_invitation',{p_token:token.trim()});
    if(r.error)throw r.error;
    window.location.replace('/dashboard');
   }catch(e){setError(friendlyError(e))}finally{setBusy(false)}
  }
 
- const inviteFromLink=Boolean(initialCode&&initialToken);
-
  return <main className="auth"><section className="auth-card">
   <div className="auth-icon"><Building2/></div>
   <h1>الانضمام إلى فريق الجمعية</h1>
   <p>{sessionEmail?'أكمل قبول الدعوة بالحساب الحالي.':'أنشئ حساب الموظف واختر كلمة مرور خاصة بك، ثم استخدم نفس البريد وكلمة المرور لتسجيل الدخول لاحقًا.'}</p>
-  {inviteFromLink&&<div className="success">تم التعرّف على رابط الدعوة. سيتم التحقق من البريد والجمعية والدور على الخادم قبل تفعيل العضوية.</div>}
+  {token&&<div className="success">رابط الدعوة آمن ومربوط من الخادم بالجمعية والبريد والدور المحدد. لا يمكن تغيير الجمعية من هذه الصفحة.</div>}
   {!ready?<p role="status">جاري التحقق من الجلسة…</p>:<form onSubmit={submit}>
-   {!initialCode&&<label>كود الجمعية<input required dir="ltr" value={code} onChange={e=>setCode(e.target.value)} placeholder="JM-100001"/></label>}
-   {!initialToken&&<label>رمز الدعوة<input required dir="ltr" value={token} onChange={e=>setToken(e.target.value)} autoComplete="off"/></label>}
    {sessionEmail?
     <div className="security-note">الحساب الحالي: {sessionEmail}. يجب أن يطابق بريد الدعوة.<LogoutButton destination={'/staff-access'+search}/></div>
     :<>
@@ -75,7 +71,7 @@ export default function StaffAccess(){
    }
    {error&&<p className="error" role="alert">{error}</p>}
    {message&&<p className="success" role="status">{message}</p>}
-   <button className="primary wide" disabled={busy}><UserPlus size={18}/>{busy?'جاري المعالجة…':sessionEmail?'قبول الدعوة والدخول':register?'إنشاء الحساب والانضمام':'تسجيل الدخول وقبول الدعوة'}</button>
+   <button className="primary wide" disabled={busy||!token}><UserPlus size={18}/>{busy?'جاري المعالجة…':sessionEmail?'قبول الدعوة والدخول':register?'إنشاء الحساب والانضمام':'تسجيل الدخول وقبول الدعوة'}</button>
    {!sessionEmail&&<button type="button" className="link" disabled={busy} onClick={()=>{setRegister(v=>!v);setError('');setMessage('');setPassword('');setConfirmPassword('')}}>{register?'لدي حساب موظف بالفعل':'موظف جديد؟ أنشئ حسابك وكلمة مرورك'}</button>}
   </form>}
   <Link className="link" to="/forgot-password">نسيت كلمة المرور؟</Link>
