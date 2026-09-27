@@ -1120,3 +1120,70 @@
 .case-beneficiary i{font-style:normal;font-size:9px;font-weight:800;color:var(--ws-brand)}
 .case-create-fields{display:grid;gap:14px}
 @media(max-width:900px){.case-create-grid{grid-template-columns:1fr}}
+
+
+/* Inventory workbench */
+.inventory-page .hero-actions{display:flex;gap:8px;flex-wrap:wrap}
+.inventory-commandbar{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  margin:0 0 14px;padding:7px;
+  border:1px solid var(--ws-line);border-radius:15px;background:#fff;box-shadow:var(--ws-shadow-sm)
+}
+.inventory-tabs{display:flex;gap:4px;min-width:0;overflow:auto;scrollbar-width:thin}
+.inventory-tab{
+  flex:none;display:flex;align-items:center;gap:6px;min-height:38px;padding:0 11px!important;
+  border:0!important;border-radius:9px!important;background:transparent!important;color:var(--ws-muted)!important;font-size:10px;font-weight:800;white-space:nowrap
+}
+.inventory-tab:hover{background:#f4f8f6!important;color:var(--ws-ink)!important}
+.inventory-tab.active{background:var(--ws-brand-soft)!important;color:var(--ws-brand-strong)!important}
+.inventory-tab small{min-width:20px;height:20px;padding:0 5px;border-radius:999px;display:grid;place-items:center;background:#fff;border:1px solid var(--ws-line);font-size:8px}
+.inventory-commandbar .search-box{margin:0;min-width:310px;max-width:480px}
+.inventory-empty{
+  min-height:235px;padding:38px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;text-align:center;color:var(--ws-muted)
+}
+.inventory-empty>svg{color:#7f918a}
+.inventory-empty b{font-size:14px;color:var(--ws-ink)}
+.inventory-empty p{margin:0;max-width:520px;font-size:10px;line-height:1.8}
+.inventory-empty>div{margin-top:8px}
+.inventory-sub{display:block;margin-top:3px;color:var(--ws-muted);font-size:9px}
+.inventory-card-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:14px}
+.inventory-warehouse-card{
+  min-height:98px;padding:14px;border:1px solid var(--ws-line);border-radius:14px;background:#fff;
+  display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:11px
+}
+.inventory-warehouse-card:hover{border-color:#bdd2c9;box-shadow:var(--ws-shadow-sm)}
+.inventory-warehouse-icon{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;background:var(--ws-brand-soft);color:var(--ws-brand)}
+.inventory-warehouse-icon svg{width:19px}
+.inventory-warehouse-card>div{display:grid;gap:2px}
+.inventory-warehouse-card b{font-size:12px;color:var(--ws-ink)}
+.inventory-warehouse-card small{font-size:9px;color:var(--ws-muted)}
+.inventory-warehouse-card em{font-size:8px;color:#8b9b95;font-style:normal;margin-top:3px}
+.inventory-move{
+  min-height:28px;padding:4px 8px;border-radius:8px;display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:800
+}
+.inventory-move.receipt{background:var(--ws-success-soft);color:var(--ws-success)}
+.inventory-move.issue{background:var(--ws-warning-soft);color:var(--ws-warning)}
+.inventory-move.adjustment{background:var(--ws-brand-soft);color:var(--ws-brand)}
+.inventory-modal{width:min(620px,100%)!important}
+.inventory-modal-body{border:0;margin:0;padding:18px 20px 20px;display:grid;gap:13px}
+.inventory-modal-body label{display:grid;gap:7px}
+.inventory-modal-body .optional{font-size:9px;color:var(--ws-muted);font-weight:500}
+.inventory-modal-body textarea{min-height:90px}
+.inventory-modal .modal-actions{
+  display:flex;justify-content:flex-end;gap:8px;margin-top:2px;padding-top:14px;border-top:1px solid var(--ws-line)
+}
+.inventory-modal .modal-actions button{min-width:110px}
+.inventory-page .stat-card small{display:block;margin-top:6px;color:var(--ws-muted);font-size:9px}
+
+@media(max-width:1050px){
+  .inventory-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .inventory-commandbar{align-items:stretch;flex-direction:column}
+  .inventory-commandbar .search-box{min-width:0;max-width:none;width:100%}
+}
+@media(max-width:650px){
+  .inventory-card-grid{grid-template-columns:1fr}
+  .inventory-page .hero-actions{display:grid;grid-template-columns:1fr 1fr;width:100%}
+  .inventory-page .hero-actions button{width:100%}
+  .inventory-tabs{width:100%}
+  .inventory-tab{flex:1;justify-content:center}
+}
