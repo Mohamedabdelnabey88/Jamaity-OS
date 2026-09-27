@@ -181,7 +181,13 @@
 }
 
 /* Buttons */
-.workspace-frame button{
+ .workspace-frame button{
+  min-height:36px;
+  padding:0 10px;
+  border:1px solid transparent;
+  border-radius:10px;
+  background:transparent;
+  color:#355148;
   font-family:inherit;
   transition:background-color .15s ease,border-color .15s ease,color .15s ease,box-shadow .15s ease,transform .15s ease;
 }
