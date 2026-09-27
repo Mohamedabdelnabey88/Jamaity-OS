@@ -13,6 +13,10 @@ create index if not exists donation_thank_you_logs_charity_idx
   on public.donation_thank_you_logs(charity_id, sent_at desc);
 create index if not exists donation_thank_you_logs_donation_idx
   on public.donation_thank_you_logs(donation_id, sent_at desc);
+create index if not exists donation_thank_you_logs_donor_idx
+  on public.donation_thank_you_logs(donor_id);
+create index if not exists donation_thank_you_logs_sent_by_idx
+  on public.donation_thank_you_logs(sent_by);
 
 alter table public.donation_thank_you_logs enable row level security;
 revoke all on table public.donation_thank_you_logs from public,anon,authenticated;
