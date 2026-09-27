@@ -1083,3 +1083,23 @@
   .workspace-frame .permission-segmented{width:100%;display:grid;grid-template-columns:1fr}
   .workspace-frame .permission-segmented .permission{width:100%;justify-content:center}
 }
+
+.workspace-frame .role-permission-card>.member-permissions{padding:14px}
+.workspace-frame .role-purpose{
+  margin:14px 16px 0;
+  padding:11px 13px;
+  border:1px solid #e1ebe6;
+  border-radius:10px;
+  background:#fafcfb;
+  color:var(--ws-muted);
+  font-size:10px;
+  line-height:1.8;
+}
+.workspace-frame .role-permission-count{
+  min-height:28px;
+  padding:5px 9px;
+  border-radius:8px;
+  background:var(--ws-brand-soft);
+  color:var(--ws-brand-strong)!important;
+  font-weight:800;
+}
