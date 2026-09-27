@@ -1,6 +1,6 @@
 import{friendlyError}from'../lib/requests';
 import{readWithDeadline}from'../lib/readWithDeadline';
-import{FormEvent,useEffect,useMemo,useRef,useState}from'react';
+import{FormEvent,useEffect,useMemo,useRef,useState,type ReactNode}from'react';
 import{ArrowDownToLine,ArrowUpFromLine,Boxes,CheckCircle2,History,Layers3,PackagePlus,Plus,RefreshCw,Search,Warehouse,X}from'lucide-react';
 import{supabase}from'../supabase';
 import{can,getAccessState,type AccessState}from'../lib/rbac';
@@ -127,7 +127,7 @@ export default function Inventory(){
  </main>
 }
 
-function TabButton({active,onClick,icon,label,count}:{active:boolean;onClick:()=>void;icon:React.ReactNode;label:string;count?:number}){return <button type="button" role="tab" aria-selected={active} className={active?'inventory-tab active':'inventory-tab'} onClick={onClick}>{icon}<span>{label}</span>{count!==undefined&&<small>{count.toLocaleString('ar-SA')}</small>}</button>}
+function TabButton({active,onClick,icon,label,count}:{active:boolean;onClick:()=>void;icon:ReactNode;label:string;count?:number}){return <button type="button" role="tab" aria-selected={active} className={active?'inventory-tab active':'inventory-tab'} onClick={onClick}>{icon}<span>{label}</span>{count!==undefined&&<small>{count.toLocaleString('ar-SA')}</small>}</button>}
 function Stat({label,value,hint}:{label:string;value:number;hint:string}){return <article className="stat-card"><span>{label}</span><strong>{value.toLocaleString('ar-SA')}</strong><small>{hint}</small></article>}
-function InventoryEmpty({icon,title,text,action}:{icon:React.ReactNode;title:string;text:string;action?:React.ReactNode}){return <div className="inventory-empty">{icon}<b>{title}</b><p>{text}</p>{action&&<div>{action}</div>}</div>}
+function InventoryEmpty({icon,title,text,action}:{icon:ReactNode;title:string;text:string;action?:ReactNode}){return <div className="inventory-empty">{icon}<b>{title}</b><p>{text}</p>{action&&<div>{action}</div>}</div>}
 function inventoryError(message:string){if(message.includes('insufficient_stock'))return'لا يمكن تنفيذ الصرف لأن الكمية المطلوبة أكبر من الرصيد المتاح.';if(message.includes('duplicate')||message.includes('unique'))return'يوجد سجل بنفس البيانات بالفعل. راجع رمز الصنف أو الاسم.';if(message.includes('permission'))return'ليس لديك صلاحية لإدارة المخزون.';return message}
