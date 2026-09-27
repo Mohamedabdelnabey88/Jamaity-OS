@@ -1,7 +1,7 @@
 import React,{lazy,Suspense,useEffect,useState}from'react';
 import{createRoot}from'react-dom/client';
 import{BrowserRouter,useLocation,useNavigate}from'react-router-dom';
-import{ArrowLeft,BarChart3,Bell,Building2,ChevronDown,HeartHandshake,KeyRound,Menu,Plus,Search,ShieldCheck,Sparkles,Users,WalletCards,X}from'lucide-react';
+import{ArrowLeft,BarChart3,Bell,Building2,ChevronDown,HeartHandshake,KeyRound,Landmark,Menu,Plus,Search,ShieldCheck,Sparkles,Users,WalletCards,X}from'lucide-react';
 import{supabase}from'./supabase';
 import{getAccessState,type AccessState}from'./lib/rbac';
 const Beneficiaries=lazy(()=>import('./pages/Beneficiaries'));
@@ -106,6 +106,7 @@ function WorkspaceHeader({access}:{access:AccessState|null}){
   </button>
   <nav className={open?'nav workspace-nav open':'nav workspace-nav'}>
    <button className={active('/dashboard')?'workspace-nav-home active':'workspace-nav-home'} onClick={()=>{setOpen(false);n('/dashboard')}}>لوحة التحكم</button>
+   {(access?.roleCode==='finance'||access?.permissions.includes('accounting.view')||access?.permissions.includes('accounting.manage'))&&<button className={active('/accounting')?'workspace-nav-home active finance-direct':'workspace-nav-home finance-direct'} onClick={()=>{setMenuOpen(null);setOpen(false);n('/accounting')}}><Landmark size={15}/> المحاسبة</button>}
    {groups.map(group=><div className={'workspace-menu '+(menuOpen===group.label?'is-open':'')} key={group.label} onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node|null))setMenuOpen(null)}}>
     <button type="button" className="workspace-menu-trigger" aria-haspopup="menu" aria-expanded={menuOpen===group.label} onClick={()=>setMenuOpen(v=>v===group.label?null:group.label)}>
      <span>{group.label}</span><ChevronDown size={15}/>
