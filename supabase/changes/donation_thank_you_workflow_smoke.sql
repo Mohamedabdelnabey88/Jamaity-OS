@@ -8,10 +8,10 @@ declare
   v_result jsonb;
   v_status_count bigint;
 begin
-  select cm.user_id,d.id,d.v_expected_charity
+  select cm.user_id,d.id,d.charity_id
   into v_owner_uid,v_donation_id,v_expected_charity
   from public.donations d
-  join public.charity_members cm on cm.v_expected_charity=d.v_expected_charity and cm.status='active'
+  join public.charity_members cm on cm.charity_id=d.charity_id and cm.status='active'
   join public.roles ro on ro.id=cm.role_id and ro.code='owner'
   where d.status='received'
   order by d.donated_at desc
@@ -23,24 +23,24 @@ begin
   perform set_config('request.jwt.claim.role','authenticated',true);
   execute 'set local role authenticated';
 
-  r:=public.record_donation_thank_you(
+  v_result:=public.record_donation_thank_you(
     v_donation_id,
     'copy',
     'Smoke thank-you message'
   );
 
-  if nullif(r->>'id','') is null then raise exception 'thank_you_log_missing'; end if;
+  if nullif(v_result->>'id','') is null then raise exception 'thank_you_log_missing'; end if;
 
   select s.send_count into v_status_count
   from public.donation_thank_you_status(array[v_donation_id]) s
-  where s.v_donation_id=v_donation_id;
+  where s.donation_id=v_donation_id;
 
   if coalesce(v_status_count,0)<1 then raise exception 'thank_you_status_failed'; end if;
 
   execute 'reset role';
   if not exists(
-    select 1 from public.donation_thank_you_logs
-    where id=(r->>'id')::uuid and v_expected_charity=v_expected_charity
+    select 1 from public.donation_thank_you_logs l
+    where l.id=(v_result->>'id')::uuid and l.charity_id=v_expected_charity
   ) then raise exception 'tenant_binding_failed'; end if;
 end $$;
 
