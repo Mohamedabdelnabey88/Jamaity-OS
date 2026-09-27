@@ -1248,3 +1248,64 @@
 .workspace-frame button{font-weight:600}
 .workspace-frame svg,
 .workspace-header svg{flex:0 0 auto}
+
+
+/* Donor thank-you workflow */
+.thank-button{
+  min-height:36px!important;
+  padding:0 11px!important;
+  border:1px solid #cfe1d8!important;
+  border-radius:9px!important;
+  background:#f5faf7!important;
+  color:var(--ws-brand-strong)!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:6px!important;
+  font-weight:700!important;
+}
+.thank-button:hover{background:var(--ws-brand-soft)!important;border-color:#b8d1c5!important}
+.thank-button.sent{
+  background:var(--ws-success-soft)!important;
+  color:var(--ws-success)!important;
+  border-color:#cce6d6!important;
+}
+.thank-you-modal{width:min(720px,100%)!important}
+.thank-you-body{padding:18px 20px 20px;display:grid;gap:14px}
+.thank-you-recipient{
+  display:flex;align-items:center;gap:10px;padding:12px 14px;
+  border:1px solid var(--ws-line);border-radius:12px;background:#fafcfb
+}
+.thank-you-recipient>svg{color:var(--ws-brand);flex:none}
+.thank-you-recipient>div{display:grid;gap:2px}
+.thank-you-recipient b{font-size:13px;color:var(--ws-ink)}
+.thank-you-recipient span{font-size:10px;color:var(--ws-muted)}
+.thank-you-body textarea{
+  min-height:220px;line-height:1.95;resize:vertical;background:#fff
+}
+.thank-you-channels{display:flex;gap:8px;flex-wrap:wrap}
+.thank-you-channels button{min-height:42px}
+.whatsapp-action{
+  min-height:42px;padding:0 14px;border:1px solid #bfe0ce!important;border-radius:11px!important;
+  background:#eef9f3!important;color:#176a45!important;font-weight:700!important;
+  display:inline-flex!important;align-items:center!important;gap:7px!important
+}
+.whatsapp-action:hover{background:#e3f5eb!important}
+.thank-you-template-note{
+  display:flex;align-items:flex-start;gap:9px;padding:12px 14px;
+  border:1px solid #e6dfc9;border-radius:12px;background:#fffaf0;color:#6d5b2d
+}
+.thank-you-template-note>svg{flex:none;margin-top:2px}
+.thank-you-template-note>div{display:grid;gap:3px}
+.thank-you-template-note b{font-size:11px}
+.thank-you-template-note span{font-size:10px;line-height:1.75}
+.thank-you-confirm{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding-top:14px;border-top:1px solid var(--ws-line)
+}
+.thank-you-confirm>span{font-size:10px;line-height:1.75;color:var(--ws-muted);max-width:430px}
+@media(max-width:650px){
+  .thank-you-channels{display:grid;grid-template-columns:1fr}
+  .thank-you-channels button{width:100%}
+  .thank-you-confirm{align-items:stretch;flex-direction:column}
+  .thank-you-confirm button{width:100%}
+}
