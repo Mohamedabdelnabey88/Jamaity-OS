@@ -96,7 +96,7 @@ export default function Donations(){
  async function ensureOfficialLetter(){
   if(!thankOpen)throw new Error('لم يتم تحديد التبرع.');
   if(!letterTemplate?.background_object_path)throw new Error('لم يتم إعداد الورقة الرسمية للجمعية بعد. انتقل إلى الإعدادات ← خطابات الشكر.');
-  if(officialDoc?.donationId===thankOpen.id)return officialDoc.url;
+  const currentDoc=officialDoc;if(currentDoc&&currentDoc.donationId===thankOpen.id)return currentDoc.url;
   setBusy('letter');setError('');
   try{
    const bg=await supabase.storage.from('charity-letterheads').createSignedUrl(letterTemplate.background_object_path,600);
