@@ -44,6 +44,9 @@ create index if not exists charity_document_templates_charity_idx on public.char
 create index if not exists donation_thank_you_documents_charity_idx on public.donation_thank_you_documents(charity_id,created_at desc);
 create index if not exists donation_thank_you_documents_donation_idx on public.donation_thank_you_documents(donation_id,created_at desc);
 create index if not exists donation_thank_you_documents_created_by_idx on public.donation_thank_you_documents(created_by);
+create index if not exists charity_document_templates_created_by_idx on public.charity_document_templates(created_by);
+create index if not exists charity_document_templates_updated_by_idx on public.charity_document_templates(updated_by);
+create index if not exists donation_thank_you_documents_template_idx on public.donation_thank_you_documents(template_id);
 
 alter table public.charity_document_templates enable row level security;
 alter table public.donation_thank_you_documents enable row level security;
@@ -146,13 +149,15 @@ language plpgsql
 security definer
 set search_path=''
 as $function$
-declare c uuid:=private.current_charity_id();doc_id uuid;
+declare c uuid:=private.current_charity_id();doc_id uuid;expected_prefix text;
 begin
  if auth.uid() is null then raise exception 'not_authenticated'; end if;
  if c is null or not (private.has_permission('donations.manage') or private.has_permission('donors.manage')) then raise exception 'permission_denied'; end if;
  if not exists(select 1 from public.donations where id=p_donation_id and charity_id=c and status='received') then raise exception 'donation_not_received'; end if;
  if p_template_id is not null and not exists(select 1 from public.charity_document_templates where id=p_template_id and charity_id=c and template_kind='donor_thank_you') then raise exception 'template_not_found'; end if;
- if nullif(trim(coalesce(p_object_path,'')),'') is null or p_object_path not like c::text||'/%' then raise exception 'invalid_document_path'; end if;
+
+ expected_prefix:=c::text||'/generated/donor-thank-you/'||p_donation_id::text||'/';
+ if nullif(trim(coalesce(p_object_path,'')),'') is null or p_object_path not like expected_prefix||'%' then raise exception 'invalid_document_path'; end if;
 
  insert into public.donation_thank_you_documents(charity_id,donation_id,template_id,object_path,created_by)
  values(c,p_donation_id,p_template_id,p_object_path,auth.uid())
