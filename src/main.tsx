@@ -1,7 +1,7 @@
 import React,{lazy,Suspense,useEffect,useState}from'react';
 import{createRoot}from'react-dom/client';
 import{BrowserRouter,useLocation,useNavigate}from'react-router-dom';
-import{ArrowLeft,BarChart3,Bell,Building2,HeartHandshake,KeyRound,Menu,Plus,Search,ShieldCheck,Sparkles,Users,WalletCards,X}from'lucide-react';
+import{ArrowLeft,BarChart3,Bell,Building2,ChevronDown,HeartHandshake,KeyRound,Menu,Plus,Search,ShieldCheck,Sparkles,Users,WalletCards,X}from'lucide-react';
 import{supabase}from'./supabase';
 import{getAccessState,type AccessState}from'./lib/rbac';
 const Beneficiaries=lazy(()=>import('./pages/Beneficiaries'));
@@ -70,8 +70,9 @@ function allowed(a:AccessState|null,codes:string[],roles:string[]=[]){if(!a?.wor
 function Header({user,access}:{user:any;access:AccessState|null}){const n=useNavigate();const[open,setOpen]=useState(false);return <header className="top"><button className="icon mobile"onClick={()=>setOpen(!open)}>{open?<X/>:<Menu/>}</button><button className="brand"onClick={()=>n('/')}><span className="brandmark"><HeartHandshake/></span><span><b>{A.brand}</b><small>{A.tag}</small></span></button><nav className={open?'nav open':'nav'}>{user&&access?.workspaceEnabled?<><button onClick={()=>n('/dashboard')}>{A.dashboard}</button>{allowed(access,['beneficiaries.view','beneficiaries.manage'],['owner','admin'])&&<button onClick={()=>n('/beneficiaries')}>{A.beneficiaries}</button>}{allowed(access,['beneficiaries.view','beneficiaries.manage'],['owner','admin'])&&<button onClick={()=>n('/beneficiary-applications')}>{A.applications}</button>}{allowed(access,['cases.view','cases.manage'],['owner','admin'])&&<button onClick={()=>n('/cases')}>{A.cases}</button>}{allowed(access,['support.manage','support.approve'],['owner','admin'])&&<button onClick={()=>n('/support')}>{A.support}</button>}{allowed(access,['donors.view','donors.manage'],['owner','admin'])&&<button onClick={()=>n('/donors')}>{A.donors}</button>}{allowed(access,['donations.manage'],['owner','admin','finance','donor_manager'])&&<button onClick={()=>n('/donations')}>{A.donations}</button>}{allowed(access,['updates.manage'],['owner','admin','content_manager'])&&<button onClick={()=>n('/updates')}>{A.updates}</button>}{allowed(access,['inventory.manage'],['owner','admin'])&&<button onClick={()=>n('/inventory')}>{A.inventory}</button>}{allowed(access,['audit.view','donations.manage'],['owner','admin','finance'])&&<button onClick={()=>n('/accounting')}>{A.accounting}</button>}{allowed(access,['governance.view','governance.manage'],['owner','admin'])&&<button onClick={()=>n('/governance')}>الحوكمة</button>}{allowed(access,['approvals.view','approvals.manage'],['owner','admin'])&&<button onClick={()=>n('/approvals')}>الموافقات</button>}{allowed(access,['reports.view'],['owner','admin','finance'])&&<button onClick={()=>n('/reports')}>التقارير</button>}{allowed(access,['team.manage','members.manage','roles.manage'],['owner','admin'])&&<button onClick={()=>n('/team')}>{A.team}</button>}</>:<button onClick={()=>n('/directory')}>{A.directory}</button>}</nav><div className="top-actions">{user?<><button className="icon"onClick={()=>n('/notifications')}title="الإشعارات"><Bell/></button><LogoutButton/></>:<><button className="ghost"onClick={()=>n('/login')}>{A.login}</button><button className="primary small"onClick={()=>n('/register')}>{A.register}</button></>}</div></header>}
 
 function WorkspaceHeader({access}:{access:AccessState|null}){
- const n=useNavigate(),location=useLocation();const[profile,setProfile]=useState<any>(null),[open,setOpen]=useState(false);
+ const n=useNavigate(),location=useLocation();const[profile,setProfile]=useState<any>(null),[open,setOpen]=useState(false),[menuOpen,setMenuOpen]=useState<string|null>(null);
  useEffect(()=>{supabase.rpc('charity_profile').then(r=>{if(!r.error)setProfile(r.data)})},[]);
+ useEffect(()=>{setMenuOpen(null);setOpen(false)},[location.pathname]);
  const active=(path:string)=>location.pathname===path||location.pathname.startsWith(path+'/');
  const groups=[
   {label:'المستفيدون والخدمات',items:[
@@ -105,15 +106,17 @@ function WorkspaceHeader({access}:{access:AccessState|null}){
   </button>
   <nav className={open?'nav workspace-nav open':'nav workspace-nav'}>
    <button className={active('/dashboard')?'workspace-nav-home active':'workspace-nav-home'} onClick={()=>{setOpen(false);n('/dashboard')}}>لوحة التحكم</button>
-   {groups.map(group=><details className="workspace-menu" key={group.label}>
-    <summary>{group.label}</summary>
-    <div className="workspace-menu-panel">
-     {group.items.map(item=><button key={item.path} className={active(item.path)?'active':''} onClick={e=>{(e.currentTarget.closest('details') as HTMLDetailsElement|null)?.removeAttribute('open');setOpen(false);n(item.path)}}>
+   {groups.map(group=><div className={'workspace-menu '+(menuOpen===group.label?'is-open':'')} key={group.label} onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget as Node|null))setMenuOpen(null)}}>
+    <button type="button" className="workspace-menu-trigger" aria-haspopup="menu" aria-expanded={menuOpen===group.label} onClick={()=>setMenuOpen(v=>v===group.label?null:group.label)}>
+     <span>{group.label}</span><ChevronDown size={15}/>
+    </button>
+    {menuOpen===group.label&&<div className="workspace-menu-panel" role="menu" aria-label={group.label}>
+     {group.items.map(item=><button type="button" role="menuitem" key={item.path} className={active(item.path)?'active':''} onClick={()=>{setMenuOpen(null);setOpen(false);n(item.path)}}>
       <span><b>{item.label}</b><small>{item.desc}</small></span>
       <ArrowLeft size={15}/>
      </button>)}
-    </div>
-   </details>)}
+    </div>}
+   </div>)}
   </nav>
   <div className="top-actions workspace-actions">
    <button className="icon" onClick={()=>n('/notifications')} aria-label="الإشعارات" title="الإشعارات"><Bell/></button>
