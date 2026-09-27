@@ -51,7 +51,7 @@
   overflow:visible;
 }
 .workspace-nav-home,
-.workspace-menu>summary{
+.workspace-menu-trigger{
   height:40px;
   padding:0 11px;
   border:0;
@@ -68,14 +68,13 @@
   white-space:nowrap;
   transition:.16s ease;
 }
-.workspace-nav-home:hover,.workspace-menu>summary:hover{background:var(--ws-brand-soft);color:var(--ws-brand-strong)}
+.workspace-nav-home:hover,.workspace-menu-trigger:hover{background:var(--ws-brand-soft);color:var(--ws-brand-strong)}
 .workspace-nav-home.active{background:var(--ws-brand);color:#fff;box-shadow:0 6px 16px rgba(11,106,88,.18)}
 .workspace-menu{position:relative}
-.workspace-menu>summary{list-style:none}
-.workspace-menu>summary::-webkit-details-marker{display:none}
-.workspace-menu>summary::after{content:"⌄";font-size:13px;line-height:1;transition:transform .16s ease}
-.workspace-menu[open]>summary{background:var(--ws-brand-soft);color:var(--ws-brand-strong)}
-.workspace-menu[open]>summary::after{transform:rotate(180deg)}
+.workspace-menu-trigger{list-style:none}
+.workspace-menu-trigger>svg{transition:transform .16s ease}
+.workspace-menu.is-open>.workspace-menu-trigger{background:var(--ws-brand-soft);color:var(--ws-brand-strong)}
+.workspace-menu.is-open>.workspace-menu-trigger>svg{transform:rotate(180deg)}
 .workspace-menu-panel{
   position:absolute;
   top:calc(100% + 10px);
@@ -193,7 +192,7 @@
 }
 .workspace-frame button:focus-visible,
 .workspace-header button:focus-visible,
-.workspace-header summary:focus-visible{
+.workspace-header .workspace-menu-trigger:focus-visible{
   outline:3px solid rgba(11,106,88,.18);
   outline-offset:2px;
 }
@@ -501,7 +500,7 @@
     align-items:stretch;
     gap:4px;
   }
-  .workspace-nav-home,.workspace-menu>summary{width:100%;justify-content:space-between;height:44px}
+  .workspace-nav-home,.workspace-menu-trigger{width:100%;justify-content:space-between;height:44px}
   .workspace-menu{width:100%}
   .workspace-menu-panel{position:static;width:100%;box-shadow:none;border:0;border-radius:10px;background:#f8fbfa;margin-top:4px}
   .workspace-menu-panel::before{display:none}
@@ -887,3 +886,47 @@
 }
 .workspace-frame .workspace-identity-badge svg{width:22px;height:22px}
 @media(max-width:700px){.workspace-frame .workspace-identity{align-items:flex-start;flex-direction:column}.workspace-frame .workspace-identity-badge{width:100%;min-height:60px}}
+
+
+/* Fix dropdown clipping and make workspace navigation behave like an app menu */
+.workspace-header{overflow:visible!important}
+.workspace-header .workspace-nav{
+  overflow:visible!important;
+  overflow-x:visible!important;
+  overflow-y:visible!important;
+}
+.workspace-menu{position:relative;flex:none}
+.workspace-menu-trigger{
+  min-width:max-content;
+  justify-content:space-between;
+}
+.workspace-menu-panel{
+  max-height:min(420px,calc(100vh - 120px));
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+  scrollbar-color:#bfd1c9 transparent;
+}
+.workspace-menu-panel button{
+  width:100%;
+}
+.workspace-menu-panel button:focus-visible{
+  outline:3px solid rgba(11,106,88,.14);
+  outline-offset:-2px;
+}
+@media(min-width:1121px){
+  .workspace-menu-panel{
+    min-width:260px;
+    width:280px;
+    right:0;
+    left:auto;
+  }
+  .workspace-menu:nth-last-child(-n+2) .workspace-menu-panel{
+    right:auto;
+    left:0;
+  }
+}
+@media(max-width:1120px){
+  .workspace-nav.open{overflow-y:auto!important;max-height:calc(100vh - 92px)}
+  .workspace-menu-panel{max-height:none;overflow:visible}
+}
