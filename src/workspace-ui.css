@@ -1309,3 +1309,93 @@
   .thank-you-confirm{align-items:stretch;flex-direction:column}
   .thank-you-confirm button{width:100%}
 }
+
+
+/* Official charity letterhead templates */
+.letter-template-editor{margin-top:18px}
+.letter-template-layout{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(360px,.72fr);
+  gap:18px;
+  padding:18px;
+}
+.letter-template-controls{display:grid;gap:14px}
+.template-info{
+  display:flex;align-items:flex-start;gap:10px;padding:14px 15px;
+  border:1px solid #d8e7e0;border-radius:13px;background:#f5faf7
+}
+.template-info>svg{flex:none;margin-top:2px;color:var(--ws-brand)}
+.template-info>div{display:grid;gap:3px}
+.template-info b{font-size:12px;color:var(--ws-ink)}
+.template-info p{margin:0;font-size:10px;line-height:1.85;color:var(--ws-muted)}
+.template-upload{
+  min-height:74px;padding:12px 14px;border:1px dashed #b9cfc6;border-radius:13px;
+  display:grid!important;grid-template-columns:auto 1fr auto;align-items:center;gap:11px;
+  background:#fbfdfc;cursor:pointer
+}
+.template-upload:hover{border-color:#8db8a8;background:#f5faf7}
+.template-upload>svg{width:22px;color:var(--ws-brand)}
+.template-upload>span{display:grid;gap:2px}
+.template-upload b{font-size:12px;color:var(--ws-ink)}
+.template-upload small{font-size:9px;color:var(--ws-muted)}
+.template-upload input{width:170px!important;min-height:36px!important;font-size:10px!important;border:0!important;padding:0!important;background:transparent!important}
+.template-upload.secondary-upload{background:#fff}
+.template-variables{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.template-variables>span{font-size:10px;color:var(--ws-muted)}
+.template-variables code{
+  direction:ltr;padding:4px 7px;border:1px solid var(--ws-line);border-radius:7px;
+  background:#f8fbfa;color:var(--ws-brand-strong);font-size:9px
+}
+.template-source-saved{
+  display:flex;align-items:center;gap:7px;padding:10px 12px;
+  border:1px solid #d2e7da;border-radius:10px;background:var(--ws-success-soft);
+  color:var(--ws-success);font-size:10px;font-weight:700
+}
+.letter-preview-wrap{
+  position:sticky;top:94px;align-self:start;padding:12px;border:1px solid var(--ws-line);
+  border-radius:16px;background:#eef3f0
+}
+.letter-preview-label{display:flex;justify-content:space-between;gap:8px;padding:2px 2px 10px}
+.letter-preview-label span{font-size:11px;font-weight:800;color:var(--ws-ink)}
+.letter-preview-label small{font-size:9px;color:var(--ws-muted)}
+.letter-page-preview{
+  position:relative;width:100%;aspect-ratio:210/297;overflow:hidden;
+  border-radius:8px;background:#fff;box-shadow:0 12px 28px rgba(24,53,44,.12)
+}
+.letter-page-preview>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.letter-preview-text{
+  position:absolute;white-space:pre-wrap;direction:rtl;text-align:right;line-height:1.85;
+  color:#18271f;font-weight:500;z-index:2
+}
+.letter-preview-empty{
+  height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:7px;text-align:center;color:var(--ws-muted)
+}
+.letter-preview-empty svg{width:34px;height:34px}
+.letter-preview-empty b{font-size:12px;color:var(--ws-ink)}
+.letter-preview-empty span{font-size:9px}
+.letter-template-controls input[type=range]{padding:0;height:30px;box-shadow:none!important}
+
+/* Official donor PDF in thank-you flow */
+.official-letter-card{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:13px 14px;border:1px solid #d7e6df;border-radius:12px;
+  background:linear-gradient(135deg,#f7fbf9,#fff)
+}
+.official-letter-card>div{display:flex;align-items:center;gap:9px}
+.official-letter-card>div>svg{color:var(--ws-brand);flex:none}
+.official-letter-card span{display:grid;gap:2px}
+.official-letter-card b{font-size:11px;color:var(--ws-ink)}
+.official-letter-card small{font-size:9px;color:var(--ws-muted);line-height:1.6}
+
+@media(max-width:980px){
+  .letter-template-layout{grid-template-columns:1fr}
+  .letter-preview-wrap{position:static}
+  .letter-page-preview{max-width:520px;margin:auto}
+}
+@media(max-width:650px){
+  .template-upload{grid-template-columns:auto 1fr}
+  .template-upload input{grid-column:1/-1;width:100%!important}
+  .official-letter-card{align-items:stretch;flex-direction:column}
+  .official-letter-card button{width:100%}
+}
