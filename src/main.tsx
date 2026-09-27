@@ -108,7 +108,7 @@ function WorkspaceHeader({access}:{access:AccessState|null}){
    {groups.map(group=><details className="workspace-menu" key={group.label}>
     <summary>{group.label}</summary>
     <div className="workspace-menu-panel">
-     {group.items.map(item=><button key={item.path} className={active(item.path)?'active':''} onClick={()=>{setOpen(false);n(item.path)}}>
+     {group.items.map(item=><button key={item.path} className={active(item.path)?'active':''} onClick={e=>{(e.currentTarget.closest('details') as HTMLDetailsElement|null)?.removeAttribute('open');setOpen(false);n(item.path)}}>
       <span><b>{item.label}</b><small>{item.desc}</small></span>
       <ArrowLeft size={15}/>
      </button>)}
