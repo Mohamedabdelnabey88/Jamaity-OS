@@ -1,9 +1,10 @@
 import {readWithDeadline} from '../lib/readWithDeadline';
 import {useEffect,useMemo,useRef,useState} from 'react';
-import {CheckCircle2,Clock3,Copy,Heart,Mail,MessageCircle,Plus,RefreshCw,Search,Send,ShieldCheck,XCircle} from 'lucide-react';
+import {CheckCircle2,Clock3,Copy,Download,FileCheck2,Heart,Mail,MessageCircle,Plus,RefreshCw,Search,Send,ShieldCheck,XCircle} from 'lucide-react';
 import {supabase} from '../supabase';
 import {getAccessState} from '../lib/rbac';
 import {friendlyError} from '../lib/requests';
+import {applyTemplate,renderOfficialLetter} from '../lib/officialLetter';
 
 const labels:Record<string,string>={pledged:'متعهد به',pending:'قيد المراجعة',approved:'معتمد',received:'تم الاستلام',rejected:'مرفوض',cancelled:'ملغي'};
 
@@ -13,7 +14,8 @@ export default function Donations(){
  const[open,setOpen]=useState(false),[receiveOpen,setReceiveOpen]=useState<any>(null);
  const[form,setForm]=useState({donor:'',type:'cash',amount:'',reference:'',description:'',quantity:'',unit:'سلة'});
  const[receiveForm,setReceiveForm]=useState({warehouse:'',item:'',quantity:''});
- const[charityName,setCharityName]=useState('الجمعية');
+ const[charityName,setCharityName]=useState('الجمعية'),[charityId,setCharityId]=useState('');
+ const[letterTemplate,setLetterTemplate]=useState<any>(null),[officialDoc,setOfficialDoc]=useState<{donationId:string;url:string;path:string}|null>(null);
  const[thankOpen,setThankOpen]=useState<any>(null),[thankMessage,setThankMessage]=useState(''),[thankChannel,setThankChannel]=useState<'whatsapp'|'email'|'copy'|'other'>('whatsapp');
  const[thankStatus,setThankStatus]=useState<Record<string,{last_sent_at:string;send_count:number}>>({});
  const mutationLock=useRef(false),readController=useRef<AbortController|null>(null);
@@ -22,19 +24,21 @@ export default function Donations(){
   readController.current?.abort();const controller=new AbortController();readController.current=controller;setLoading(true);setError('');
   try{await readWithDeadline(async()=>{
    const a=await getAccessState(true);if(controller.signal.aborted)return;
-   if(!a.charityId){setRows([]);return}
-   const[d,r,w,i,p]=await Promise.all([
+   if(!a.charityId){setRows([]);return}setCharityId(a.charityId);
+   const[d,r,w,i,p,t]=await Promise.all([
     supabase.from('donors').select('id,full_name').eq('charity_id',a.charityId).order('full_name').limit(500),
     (()=>{let x=supabase.from('donations').select('*,donors(full_name,phone,email)').eq('charity_id',a.charityId!).order('donated_at',{ascending:false}).limit(100);return filter!=='all'?x.eq('status',filter):x})(),
     supabase.from('warehouses').select('id,name_ar').eq('charity_id',a.charityId).eq('is_active',true).order('name_ar'),
     supabase.from('inventory_items').select('id,name_ar,unit,sku').eq('charity_id',a.charityId).eq('is_active',true).order('name_ar'),
-    supabase.rpc('charity_profile')
+    supabase.rpc('charity_profile'),
+    supabase.rpc('donor_thank_you_template')
    ]);
    if(d.error||r.error||w.error||i.error)throw d.error||r.error||w.error||i.error;
    if(controller.signal.aborted)return;
    const donationRows=r.data||[];
    setDonors(d.data||[]);setRows(donationRows);setWarehouses(w.data||[]);setItems(i.data||[]);
    if(!p.error&&p.data)setCharityName((p.data as any)?.name_ar||'الجمعية');
+   if(!t.error)setLetterTemplate(t.data||null);
    const ids=donationRows.filter((x:any)=>x.status==='received').map((x:any)=>x.id);
    if(ids.length){
     const s=await supabase.rpc('donation_thank_you_status',{p_donation_ids:ids});
@@ -82,25 +86,65 @@ export default function Donations(){
  function openThank(donation:any){
   setError('');setNotice('');setThankOpen(donation);
   const preferred=donation.donors?.phone?'whatsapp':donation.donors?.email?'email':'copy';
-  setThankChannel(preferred);
+  setThankChannel(preferred);setOfficialDoc(null);
   setThankMessage(buildThankYouMessage(donation,charityName));
  }
  async function copyThank(){
   await navigator.clipboard.writeText(thankMessage);
   setThankChannel('copy');setNotice('تم نسخ رسالة الشكر. بعد إرسالها للمتبرع اضغط «تأكيد تم الإرسال».');
  }
- function openWhatsApp(){
+ async function ensureOfficialLetter(){
+  if(!thankOpen)throw new Error('لم يتم تحديد التبرع.');
+  if(!letterTemplate?.background_object_path)throw new Error('لم يتم إعداد الورقة الرسمية للجمعية بعد. انتقل إلى الإعدادات ← خطابات الشكر.');
+  if(officialDoc?.donationId===thankOpen.id)return officialDoc.url;
+  setBusy('letter');setError('');
+  try{
+   const bg=await supabase.storage.from('charity-letterheads').createSignedUrl(letterTemplate.background_object_path,600);
+   if(bg.error)throw bg.error;
+   const content=applyTemplate(letterTemplate.body_template,letterValues(thankOpen,charityName));
+   const rendered=await renderOfficialLetter(bg.data.signedUrl,content,{
+    contentTopMm:Number(letterTemplate.content_top_mm||62),
+    contentSideMm:Number(letterTemplate.content_side_mm||22),
+    fontSizePt:Number(letterTemplate.font_size_pt||13)
+   });
+   const path=`${charityId}/generated/donor-thank-you/${thankOpen.id}/thank-you-${Date.now()}.pdf`;
+   const uploaded=await supabase.storage.from('charity-letterheads').upload(path,rendered.pdfBlob,{contentType:'application/pdf',cacheControl:'3600',upsert:false});
+   if(uploaded.error)throw uploaded.error;
+   const registered=await supabase.rpc('register_donation_thank_you_document',{p_donation_id:thankOpen.id,p_template_id:letterTemplate.id,p_object_path:path});
+   if(registered.error)throw registered.error;
+   const signed=await supabase.storage.from('charity-letterheads').createSignedUrl(path,604800);
+   if(signed.error)throw signed.error;
+   const doc={donationId:thankOpen.id,url:signed.data.signedUrl,path};setOfficialDoc(doc);
+   setNotice('تم إنشاء خطاب الشكر الرسمي PDF وحفظه في سجل التبرع.');
+   return doc.url;
+  }finally{setBusy('')}
+ }
+ async function downloadOfficialLetter(){
+  try{
+   const url=await ensureOfficialLetter();
+   const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';a.click();
+  }catch(e){setError(friendlyError(e))}
+ }
+ async function openWhatsApp(){
   if(!thankOpen?.donors?.phone)return;
   const phone=normalizeWhatsAppNumber(thankOpen.donors.phone);
   if(!phone){setError('رقم جوال المتبرع غير صالح لفتح واتساب.');return}
-  setThankChannel('whatsapp');
-  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(thankMessage)}`,'_blank','noopener,noreferrer');
+  const popup=window.open('about:blank','_blank');
+  try{
+   const documentUrl=await ensureOfficialLetter();setThankChannel('whatsapp');
+   const body=`${thankMessage}\n\nخطاب الشكر الرسمي (رابط آمن لمدة 7 أيام):\n${documentUrl}`;
+   const target=`https://wa.me/${phone}?text=${encodeURIComponent(body)}`;
+   if(popup)popup.location.href=target;else window.location.href=target;
+  }catch(e){popup?.close();setError(friendlyError(e))}
  }
- function openEmail(){
+ async function openEmail(){
   if(!thankOpen?.donors?.email)return;
-  setThankChannel('email');
-  const subject=encodeURIComponent(`شكر وتقدير من ${charityName}`);
-  window.location.href=`mailto:${encodeURIComponent(thankOpen.donors.email)}?subject=${subject}&body=${encodeURIComponent(thankMessage)}`;
+  try{
+   const documentUrl=await ensureOfficialLetter();setThankChannel('email');
+   const subject=encodeURIComponent(`شكر وتقدير من ${charityName}`);
+   const body=encodeURIComponent(`${thankMessage}\n\nخطاب الشكر الرسمي PDF (رابط آمن لمدة 7 أيام):\n${documentUrl}`);
+   window.location.href=`mailto:${encodeURIComponent(thankOpen.donors.email)}?subject=${subject}&body=${body}`;
+  }catch(e){setError(friendlyError(e))}
  }
  async function confirmThank(){
   if(!thankOpen||mutationLock.current)return;
@@ -145,12 +189,16 @@ export default function Donations(){
     <div className="thank-you-body">
      <div className="thank-you-recipient"><Heart size={18}/><div><b>{thankOpen.donors?.full_name||'المتبرع'}</b><span>{thankOpen.donors?.phone||thankOpen.donors?.email||'لا توجد وسيلة تواصل مسجلة'}</span></div></div>
      <label>نص رسالة الشكر<textarea rows={10} value={thankMessage} onChange={e=>setThankMessage(e.target.value)} maxLength={5000}/></label>
-     <div className="thank-you-channels">
-      {thankOpen.donors?.phone&&<button type="button" className="whatsapp-action" onClick={openWhatsApp}><MessageCircle size={17}/> فتح واتساب بالرسالة</button>}
-      {thankOpen.donors?.email&&<button type="button" className="secondary" onClick={openEmail}><Mail size={17}/> فتح البريد بالرسالة</button>}
-      <button type="button" className="secondary" onClick={()=>void copyThank()}><Copy size={17}/> نسخ الرسالة</button>
+     <div className="official-letter-card">
+      <div><FileCheck2 size={19}/><span><b>الخطاب الرسمي PDF</b><small>{letterTemplate?.background_object_path?'سيتم توليده من الورقة الرسمية الخاصة بهذه الجمعية.':'لم يتم إعداد ورقة الجمعية الرسمية بعد.'}</small></span></div>
+      {letterTemplate?.background_object_path?<button type="button" className="secondary" disabled={busy==='letter'} onClick={()=>void downloadOfficialLetter()}><Download size={16}/>{officialDoc?.donationId===thankOpen.id?'فتح الخطاب':'إنشاء الخطاب PDF'}</button>:<button type="button" className="secondary" onClick={()=>window.location.assign('/settings#donor-letterhead')}>إعداد الورقة الرسمية</button>}
      </div>
-     <div className="thank-you-template-note"><ShieldCheck size={16}/><div><b>خطاب الشكر الرسمي</b><span>بعد رفع نموذج الـWord الخاص بك، سيتم استخدام نفس القالب لإصدار خطاب شكر رسمي بالاسم وبيانات التبرع تلقائيًا.</span></div></div>
+     <div className="thank-you-channels">
+      {thankOpen.donors?.phone&&<button type="button" className="whatsapp-action" disabled={busy==='letter'} onClick={()=>void openWhatsApp()}><MessageCircle size={17}/> واتساب + الخطاب الرسمي</button>}
+      {thankOpen.donors?.email&&<button type="button" className="secondary" disabled={busy==='letter'} onClick={()=>void openEmail()}><Mail size={17}/> البريد + الخطاب الرسمي</button>}
+      <button type="button" className="secondary" onClick={()=>void copyThank()}><Copy size={17}/> نسخ النص</button>
+     </div>
+     <div className="thank-you-template-note"><ShieldCheck size={16}/><div><b>خصوصية الخطاب</b><span>الملف محفوظ بشكل خاص داخل مساحة الجمعية، والرابط المرسل للمتبرع مؤقت وصالح لمدة 7 أيام فقط.</span></div></div>
      <div className="thank-you-confirm"><span>بعد إرسال الرسالة من الوسيلة التي اخترتها، أكد الإرسال لحفظه في سجل التبرع.</span><button type="button" className="primary" disabled={busy==='thank'||!thankMessage.trim()} onClick={()=>void confirmThank()}><Send size={16}/>{busy==='thank'?'جاري الحفظ...':'تأكيد تم الإرسال'}</button></div>
     </div>
    </section>
@@ -173,4 +221,19 @@ function normalizeWhatsAppNumber(phone:string){
  if(digits.startsWith('0')&&digits.length===10)digits='966'+digits.slice(1);
  else if(digits.startsWith('5')&&digits.length===9)digits='966'+digits;
  return digits;
+}
+
+
+function letterValues(donation:any,charityName:string){
+ const date=donation.donated_at?new Date(donation.donated_at).toLocaleDateString('ar-SA'):'';
+ const donationSummary=donation.donation_type==='in_kind'
+  ? `تبرعكم العيني الكريم${donation.in_kind_description?` (${donation.in_kind_description})`:''}${donation.amount!=null?` بقيمة تقديرية ${Number(donation.amount).toLocaleString('ar-SA')} ريال سعودي`:''}`
+  : `تبرعكم الكريم بمبلغ ${Number(donation.amount||0).toLocaleString('ar-SA')} ريال سعودي`;
+ return{
+  donor_name:donation.donors?.full_name||'المتبرع الكريم',
+  charity_name:charityName,
+  donation_summary:donationSummary,
+  donation_date:date,
+  reference_no:donation.reference_no||''
+ };
 }
