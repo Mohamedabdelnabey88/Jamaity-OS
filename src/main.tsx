@@ -47,6 +47,7 @@ import GlobalBackButton from'./components/GlobalBackButton';
 import'./styles.css';
 import'./core.css';
 import './account.css';
+import './workspace-ui.css';
 
 const A={brand:'جمعيتي',tag:'تشغيل ذكي للعمل الخيري',login:'دخول',register:'إنشاء حساب',directory:'دليل الجمعيات',dashboard:'لوحة التحكم',beneficiaries:'المستفيدون',applications:'طلبات الانضمام',cases:'الحالات',support:'الدعم',donations:'التبرعات',donors:'المتبرعون',updates:'تطورات الجمعية',team:'الفريق',accounting:'المحاسبة',inventory:'المخزون'};
 type Charity={id:string;name_ar:string;name_en:string|null;city:string|null;region:string|null;status:string};
