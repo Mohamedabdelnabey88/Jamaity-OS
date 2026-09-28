@@ -22,3 +22,10 @@ test('times out without automatically retrying writes',async()=>{
  try{await assert.rejects(boundedFetch('https://example.invalid/rest/v1/save',{method:'POST'}),{name:'TimeoutError'});assert.equal(calls,1);}finally{Object.assign(globalThis,originals);}
 });
 test('maps tenant mismatch to an actionable Arabic error',()=>{assert.equal(friendlyError({message:'charity_code_mismatch'}),'كود الجمعية لا يطابق الدعوة.');});
+
+test('maps hardened invitation error to Arabic',()=>{assert.match(friendlyError({message:'invitation_invalid_or_expired'}),/الدعوة/);});
+test('maps common auth failures to Arabic',()=>{
+ assert.equal(friendlyError({message:'Invalid login credentials'}),'البريد الإلكتروني أو كلمة المرور غير صحيحة.');
+ assert.match(friendlyError({message:'Email rate limit exceeded'}),/محاولات كثيرة/);
+ assert.match(friendlyError({message:'Email not confirmed'}),/فعّل بريدك/);
+});

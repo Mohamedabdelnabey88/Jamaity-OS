@@ -1,5 +1,5 @@
 import {useEffect,useState} from 'react';
-import {Link,useLocation} from 'react-router-dom';
+import {Link,useLocation,useNavigate} from 'react-router-dom';
 import {Building2,UserPlus} from 'lucide-react';
 import {supabase} from '../supabase';
 import {friendlyError} from '../lib/requests';
@@ -7,9 +7,17 @@ import LogoutButton from '../components/LogoutButton';
 import PasswordInput from '../components/PasswordInput';
 
 export default function StaffAccess(){
- const {search}=useLocation(),params=new URLSearchParams(search);
- const token=params.get('invite')||'';
+ const {search}=useLocation(),navigate=useNavigate();
+ const queryToken=new URLSearchParams(search).get('invite')||'';
+ const [token]=useState(()=>queryToken||sessionStorage.getItem('jamaity_staff_invite')||'');
  const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[confirmPassword,setConfirmPassword]=useState(''),[name,setName]=useState(''),[phone,setPhone]=useState(''),[register,setRegister]=useState(true),[sessionEmail,setSessionEmail]=useState<string|null>(null),[ready,setReady]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
+
+ useEffect(()=>{
+  if(queryToken){
+   sessionStorage.setItem('jamaity_staff_invite',queryToken);
+   navigate('/staff-access',{replace:true});
+  }
+ },[queryToken,navigate]);
 
  useEffect(()=>{let live=true;supabase.auth.getUser().then(r=>{if(live){setSessionEmail(r.data.user?.email||null);setReady(true)}}).catch(()=>{if(live){setReady(true);setError('تعذر التحقق من الجلسة.')}});return()=>{live=false}},[]);
 
@@ -30,7 +38,7 @@ export default function StaffAccess(){
       password,
       options:{
        data:{full_name:name.trim(),phone:phone.trim()||null,account_type:'charity_staff'},
-       emailRedirectTo:window.location.origin+'/staff-access'+search,
+       emailRedirectTo:window.location.origin+'/staff-access?invite='+encodeURIComponent(token),
       },
      });
      if(r.error)throw r.error;
@@ -48,6 +56,7 @@ export default function StaffAccess(){
 
    const r=await supabase.rpc('accept_staff_invitation',{p_token:token.trim()});
    if(r.error)throw r.error;
+   sessionStorage.removeItem('jamaity_staff_invite');
    window.location.replace('/dashboard');
   }catch(e){setError(friendlyError(e))}finally{setBusy(false)}
  }
@@ -59,7 +68,7 @@ export default function StaffAccess(){
   {token&&<div className="success">رابط الدعوة آمن ومربوط من الخادم بالجمعية والبريد والدور المحدد. لا يمكن تغيير الجمعية من هذه الصفحة.</div>}
   {!ready?<p role="status">جاري التحقق من الجلسة…</p>:<form onSubmit={submit}>
    {sessionEmail?
-    <div className="security-note">الحساب الحالي: {sessionEmail}. يجب أن يطابق بريد الدعوة.<LogoutButton destination={'/staff-access'+search}/></div>
+    <div className="security-note">الحساب الحالي: {sessionEmail}. يجب أن يطابق بريد الدعوة.<LogoutButton destination="/staff-access"/></div>
     :<>
      {register&&<>
       <label>الاسم الكامل<input required value={name} onChange={e=>setName(e.target.value)} autoComplete="name" placeholder="اسم الموظف"/></label>
