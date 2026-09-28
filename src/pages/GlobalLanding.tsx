@@ -104,46 +104,63 @@ export default function GlobalLanding(){
       </div>
     </header>
 
-    <section className="global-hero" id="top">
+    <section className="global-hero global-hero-premium" id="top">
       <div className="hero-aurora one"/><div className="hero-aurora two"/><div className="global-grid"/>
+      <div className="hero-orbit orbit-a"/><div className="hero-orbit orbit-b"/><div className="hero-noise"/>
+
       <div className="global-hero-copy">
         <span className="global-kicker"><Sparkles/>{t.eyebrow}<i>2026</i></span>
         <h1>{t.title}</h1>
         <p>{t.description}</p>
         <div className="global-actions">
-          <button className="global-primary" onClick={()=>navigate('/register')}>{t.start}{rtl?<ArrowLeft/>:<ArrowRight/>}</button>
-          <button className="global-secondary" onClick={()=>scrollTo('product')}>{t.explore}<span className="play-dot">▶</span></button>
+          <button className="global-primary hero-primary" onClick={()=>navigate('/register')}>{t.start}{rtl?<ArrowLeft/>:<ArrowRight/>}</button>
+          <button className="global-secondary hero-demo" onClick={()=>scrollTo('product')}><span className="play-dot">▶</span>{t.explore}</button>
           <button className="global-text-link" onClick={()=>navigate('/beneficiary-login')}>{t.beneficiary}<ChevronLeft/></button>
+        </div>
+
+        <div className="hero-proof">
+          <article><b>360°</b><span>{rtl?'تشغيل الجمعية في مكان واحد':'One operating view'}</span></article>
+          <article><b>RTL</b><span>{rtl?'تجربة عربية أصلية':'Native Arabic experience'}</span></article>
+          <article><b><ShieldCheck/></b><span>{rtl?'عزل وصلاحيات وتدقيق':'Isolation, RBAC & audit'}</span></article>
         </div>
         <div className="global-trust-row">{t.trust.map((item,index)=><span key={item}>{index===0?<LockKeyhole/>:<Check/>}{item}</span>)}</div>
       </div>
 
-      <div className="product-stage" ref={stageRef} onPointerMove={moveStage} onPointerLeave={resetStage}>
+      <div className="product-stage premium-stage" ref={stageRef} onPointerMove={moveStage} onPointerLeave={resetStage}>
         <div className="stage-glow"/>
-        <div className="floating-chip chip-one"><ShieldCheck/> RLS protected</div>
-        <div className="floating-chip chip-two"><Sparkles/> AI insights</div>
-        <div className="product-window">
-          <aside className="preview-sidebar"><span className="preview-logo"><HeartHandshake/></span>{[LayoutDashboard,UsersRound,WalletCards,Boxes,FileCheck2].map((Icon,index)=><span key={index} className={index===0?'active':''}><Icon/></span>)}</aside>
-          <div className="preview-main">
-            <div className="preview-top"><div><small>{rtl?'مساحة جمعية النور':'Al Noor workspace'}</small><b>{rtl?'صباح الخير، محمد':'Good morning, Mohammed'}</b></div><span><BellRing/></span></div>
-            <div className="preview-head"><div><span>{rtl?'لوحة القيادة':'Executive dashboard'}</span><h3>{rtl?'الصورة الكاملة، الآن.':'Clarity, right now.'}</h3></div><i>{rtl?'عرض توضيحي':'DEMO'} <b/></i></div>
-            <div className="preview-kpis">
-              <article><span><UsersRound/></span><small>{rtl?'طلبات تحتاج مراجعة':'Intake review'}</small><strong>{rtl?'جاهزة للقرار':'Decision-ready'}</strong><em>{rtl?'مثال':'Example'}</em></article>
-              <article><span><CircleDollarSign/></span><small>{rtl?'الدفاتر المالية':'Financial books'}</small><strong>{rtl?'متوازنة':'Balanced'}</strong><em><Check/></em></article>
-              <article><span><FileCheck2/></span><small>{rtl?'ملف الحوكمة':'Governance file'}</small><strong>{rtl?'قابل للتدقيق':'Audit-ready'}</strong><em><ShieldCheck/></em></article>
-            </div>
-            <div className="preview-body">
-              <article className="impact-chart"><div><span>{rtl?'تدفق الأثر':'Impact flow'}</span><b>{rtl?'التشغيل والمال في سياق واحد':'Operations and finance, connected'}</b></div><div className="chart-bars">{[38,53,47,68,60,81,74,92].map((height,index)=><i key={index} style={{height:`${height}%`}}/>)}</div><div className="chart-line"><span/><span/><span/><span/></div></article>
-              <article className="attention-card"><div><span><Sparkles/>{rtl?'يتطلب انتباهك':'Needs attention'}</span><b>3</b></div>{[
-                [rtl?'طلب دعم ينتظر الموافقة':'Support awaiting approval','finance'],
-                [rtl?'مستند حوكمة يقترب من الانتهاء':'Governance evidence expiring','governance'],
-                [rtl?'طلب انضمام جديد':'New beneficiary application','beneficiary'],
-              ].map(([label,type])=><button key={label}><i className={type}/><span>{label}</span><ChevronLeft/></button>)}</article>
+        <div className="stage-ring ring-one"/><div className="stage-ring ring-two"/>
+        <div className="floating-chip chip-one"><ShieldCheck/><span><b>{rtl?'عزل بيانات فعلي':'Tenant isolation'}</b><small>{rtl?'RLS + صلاحيات دقيقة':'RLS + granular access'}</small></span></div>
+        <div className="floating-chip chip-two"><BarChart3/><span><b>{rtl?'تقارير لحظية':'Live reporting'}</b><small>{rtl?'قرار أسرع للإدارة':'Faster decisions'}</small></span></div>
+        <div className="floating-chip chip-three"><FileCheck2/><span><b>{rtl?'حوكمة قابلة للإثبات':'Audit-ready governance'}</b><small>{rtl?'شواهد ومواعيد واضحة':'Evidence & due dates'}</small></span></div>
+
+        <div className="product-window premium-window">
+          <div className="window-chrome"><span/><span/><span/><i>{rtl?'جمعيتي — لوحة القيادة':'Jamaity — Executive dashboard'}</i></div>
+          <div className="window-shell">
+            <aside className="preview-sidebar"><span className="preview-logo"><HeartHandshake/></span>{[LayoutDashboard,UsersRound,WalletCards,Boxes,FileCheck2].map((Icon,index)=><span key={index} className={index===0?'active':''}><Icon/></span>)}</aside>
+            <div className="preview-main">
+              <div className="preview-top"><div><small>{rtl?'مساحة جمعية النور':'Al Noor workspace'}</small><b>{rtl?'صباح الخير، محمد':'Good morning, Mohammed'}</b></div><span><BellRing/></span></div>
+              <div className="preview-head"><div><span>{rtl?'لوحة القيادة':'Executive dashboard'}</span><h3>{rtl?'الصورة الكاملة، الآن.':'Clarity, right now.'}</h3></div><i>{rtl?'تحديث مباشر':'LIVE'} <b/></i></div>
+              <div className="preview-kpis">
+                <article><span><UsersRound/></span><small>{rtl?'طلبات تحتاج مراجعة':'Intake review'}</small><strong>{rtl?'جاهزة للقرار':'Decision-ready'}</strong><em>{rtl?'12 طلبًا':'12 requests'}</em></article>
+                <article><span><CircleDollarSign/></span><small>{rtl?'المركز المالي':'Financial center'}</small><strong>{rtl?'متوازن':'Balanced'}</strong><em><Check/> {rtl?'محدّث الآن':'Live'}</em></article>
+                <article><span><FileCheck2/></span><small>{rtl?'ملف الحوكمة':'Governance file'}</small><strong>{rtl?'قابل للتدقيق':'Audit-ready'}</strong><em><ShieldCheck/> 92%</em></article>
+              </div>
+              <div className="preview-body">
+                <article className="impact-chart"><div><span>{rtl?'تدفق الأثر':'Impact flow'}</span><b>{rtl?'التشغيل والمال في سياق واحد':'Operations and finance, connected'}</b></div><div className="chart-badge">+28%</div><div className="chart-bars">{[38,53,47,68,60,81,74,92].map((height,index)=><i key={index} style={{height:`${height}%`,['--height' as any]:`${height}%`}}/>)}</div><div className="chart-line"><span/><span/><span/><span/></div></article>
+                <article className="attention-card"><div><span><Sparkles/>{rtl?'يتطلب انتباهك':'Needs attention'}</span><b>3</b></div>{[
+                  [rtl?'طلب دعم ينتظر الموافقة':'Support awaiting approval','finance'],
+                  [rtl?'مستند حوكمة يقترب من الانتهاء':'Governance evidence expiring','governance'],
+                  [rtl?'طلب انضمام جديد':'New beneficiary application','beneficiary'],
+                ].map(([label,type])=><button key={label}><i className={type}/><span>{label}</span><ChevronLeft/></button>)}</article>
+              </div>
             </div>
           </div>
+          <div className="window-sheen"/>
         </div>
       </div>
-      <div className="module-ribbon" aria-label={rtl?'وحدات المنصة':'Platform modules'}><div>{[rtl?'المستفيدون':'Beneficiaries',rtl?'الحالات':'Cases',rtl?'الدعم':'Support',rtl?'المحاسبة':'Accounting',rtl?'المخزون':'Inventory',rtl?'الحوكمة':'Governance',rtl?'الموافقات':'Approvals',rtl?'التقارير':'Reports'].map(item=><span key={item}>{item}<i/></span>)}</div></div>
+
+      <div className="hero-scroll-cue" aria-hidden="true"><span/><small>{rtl?'اكتشف المنصة':'Explore'}</small></div>
+      <div className="module-ribbon" aria-label={rtl?'وحدات المنصة':'Platform modules'}><div>{[rtl?'المستفيدون':'Beneficiaries',rtl?'الحالات':'Cases',rtl?'الدعم':'Support',rtl?'المحاسبة':'Accounting',rtl?'المخزون':'Inventory',rtl?'الحوكمة':'Governance',rtl?'الموافقات':'Approvals',rtl?'التقارير':'Reports',rtl?'المستفيدون':'Beneficiaries',rtl?'الحالات':'Cases',rtl?'الدعم':'Support',rtl?'المحاسبة':'Accounting'].map((item,index)=><span key={item+index}>{item}<i/></span>)}</div></div>
     </section>
 
     <section className="global-section product-section" id="product">
