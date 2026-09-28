@@ -19,5 +19,21 @@ comment on table public.cases is
 'Case lifecycle mutations are RPC-only. Authenticated clients may read tenant-scoped rows; creation and status transitions must use validated workflows.';
 
 drop policy if exists accounting_documents_delete on storage.objects;
+drop policy if exists accounting_documents_delete_unregistered on storage.objects;
+create policy accounting_documents_delete_unregistered
+on storage.objects
+for delete
+to authenticated
+using(
+  bucket_id='accounting-documents'
+  and (storage.foldername(name))[1]=private.current_charity_id()::text
+  and private.has_permission('accounting.manage')
+  and not exists(
+    select 1
+    from public.accounting_voucher_attachments a
+    where a.charity_id=private.current_charity_id()
+      and a.object_path=storage.objects.name
+  )
+);
 comment on table public.accounting_voucher_attachments is
-'Immutable accounting evidence metadata. Files are private and append-only once linked to a voucher; corrections are made by adding a new supporting document rather than deleting history.';
+'Linked accounting evidence is immutable. Storage deletion is allowed only for uploaded objects that have not been registered to a voucher, so failed uploads can be cleaned safely.';

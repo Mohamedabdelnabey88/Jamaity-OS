@@ -81,9 +81,18 @@ begin
     where schemaname='storage'
       and tablename='objects'
       and policyname='accounting_documents_delete'
-  ) then raise exception 'accounting_document_delete_policy_still_present'; end if;
+  ) then raise exception 'broad_accounting_document_delete_policy_still_present'; end if;
+
+  if not exists(
+    select 1 from pg_policies
+    where schemaname='storage'
+      and tablename='objects'
+      and policyname='accounting_documents_delete_unregistered'
+      and qual ilike '%accounting_voucher_attachments%'
+      and qual ilike '%object_path%'
+  ) then raise exception 'safe_unregistered_cleanup_policy_missing'; end if;
 end $$;
 
-select 'PASS: financial/case mutations are RPC-only and accounting evidence is append-only' result;
+select 'PASS: lifecycle mutations are RPC-only and linked accounting evidence is immutable' result;
 
 rollback;

@@ -1742,3 +1742,14 @@
   .voucher-upload-more{grid-template-columns:auto 1fr}
   .voucher-upload-more input{grid-column:1/-1;max-width:none!important;width:100%!important}
 }
+
+
+/* Shared audited action dialogs */
+.action-dialog{width:min(620px,calc(100vw - 48px))!important;max-width:620px!important}
+.action-dialog-warning{
+ display:flex;align-items:flex-start;gap:9px;padding:11px 12px;
+ border:1px solid #efd6c9;border-radius:11px;background:#fff7f3;
+ color:#8b493b;font-size:10px;line-height:1.7
+}
+.action-dialog-warning svg{width:18px;height:18px;flex:none;margin-top:1px}
+.action-dialog fieldset>label{margin-top:2px}
