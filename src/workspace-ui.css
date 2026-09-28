@@ -1696,3 +1696,49 @@
   .governance-guide-actions button{flex:1}
   .governance-guide-toolbar{align-items:stretch;flex-direction:column}
 }
+
+
+/* Accounting supporting documents + official voucher PDFs */
+.voucher-row-actions{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.voucher-row-actions .icon,
+.document-count{
+  min-width:34px;height:34px;padding:0 8px!important;border:1px solid var(--ws-line)!important;
+  border-radius:9px!important;background:#fff!important;color:var(--ws-muted)!important;
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:5px!important
+}
+.voucher-row-actions .icon:hover,.document-count:hover{background:#f5faf7!important;color:var(--ws-brand-strong)!important;border-color:#c5d9d0!important}
+.voucher-row-actions svg,.document-count svg{width:15px;height:15px}
+.file-icon{cursor:pointer}.file-icon input{display:none!important}.document-count{font-size:10px;font-weight:800}
+.voucher-attachment-picker{
+  padding:13px 14px;border:1px dashed #bcd3c9;border-radius:12px;background:#f8fbfa;display:grid;gap:10px
+}
+.voucher-attachment-picker>div{display:flex;align-items:center;gap:9px}
+.voucher-attachment-picker>div>svg{color:var(--ws-brand);flex:none}
+.voucher-attachment-picker span{display:grid;gap:2px}
+.voucher-attachment-picker b{font-size:11px;color:var(--ws-ink)}
+.voucher-attachment-picker small,.voucher-attachment-picker p{margin:0;font-size:9px;color:var(--ws-muted);line-height:1.6}
+.voucher-documents-modal{width:min(760px,calc(100vw - 48px))!important;max-width:760px!important}
+.voucher-documents-body{padding:16px 20px 20px;display:grid;gap:9px}
+.voucher-document-row{
+  display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;
+  padding:11px 12px;border:1px solid var(--ws-line);border-radius:11px;background:#fff
+}
+.voucher-document-row>svg{color:var(--ws-brand);width:19px}
+.voucher-document-row>div{display:grid;gap:2px;min-width:0}
+.voucher-document-row b{font-size:11px;color:var(--ws-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.voucher-document-row span{font-size:9px;color:var(--ws-muted)}
+.voucher-upload-more{
+  min-height:66px;padding:11px 13px;border:1px dashed #bcd3c9;border-radius:11px;background:#f8fbfa;
+  display:grid!important;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;cursor:pointer
+}
+.voucher-upload-more>svg{color:var(--ws-brand)}
+.voucher-upload-more>span{display:grid;gap:2px}
+.voucher-upload-more b{font-size:11px;color:var(--ws-ink)}
+.voucher-upload-more small{font-size:9px;color:var(--ws-muted)}
+.voucher-upload-more input{max-width:200px!important;min-height:34px!important;padding:0!important;border:0!important;background:transparent!important;font-size:9px!important}
+@media(max-width:700px){
+  .voucher-document-row{grid-template-columns:auto 1fr}
+  .voucher-document-row button{grid-column:1/-1;width:100%}
+  .voucher-upload-more{grid-template-columns:auto 1fr}
+  .voucher-upload-more input{grid-column:1/-1;max-width:none!important;width:100%!important}
+}
