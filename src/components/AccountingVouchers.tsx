@@ -4,6 +4,7 @@ import {supabase} from '../supabase';
 import {friendlyError} from '../lib/requests';
 import {getAccessState} from '../lib/rbac';
 import {buildVoucherPdf,voucherFileName} from '../lib/voucherDocument';
+import ActionDialog from './ActionDialog';
 
 const names:Record<string,string>={receipt:'سند قبض',payment:'سند صرف',expense:'مصروف',purchase:'مشتريات'};
 const icons:Record<string,React.ReactNode>={receipt:<FilePlus2/>,payment:<FileMinus2/>,expense:<ReceiptText/>,purchase:<ShoppingCart/>};
@@ -15,7 +16,7 @@ export default function AccountingVouchers({type,accounts,onChanged,canManage=tr
  const[profile,setProfile]=useState<any>(null),[charityId,setCharityId]=useState('');
  const[pendingFiles,setPendingFiles]=useState<File[]>([]);
  const[attachmentVoucher,setAttachmentVoucher]=useState<any>(null),[attachments,setAttachments]=useState<any[]>([]),[attachmentLoading,setAttachmentLoading]=useState(false);
- const[fileBusy,setFileBusy]=useState('');
+ const[fileBusy,setFileBusy]=useState('');const[voidTarget,setVoidTarget]=useState<any>(null);
  const fileInput=useRef<HTMLInputElement|null>(null);
  const[form,setForm]=useState({type:type||'receipt',date:new Date().toISOString().slice(0,10),amount:'',party:'',description:'',method:'bank',debit:'',credit:'',external:''});
 
@@ -80,9 +81,9 @@ export default function AccountingVouchers({type,accounts,onChanged,canManage=tr
   }catch(e){setError(friendlyError(e))}finally{setBusy(false)}
  }
 
- async function voidVoucher(id:string){
-  if(busy)return;const reason=prompt('سبب إلغاء السند وعكس القيد:')?.trim();if(!reason)return;setBusy(true);setError('');setNotice('');
-  try{const r=await supabase.rpc('accounting_void_voucher',{p_voucher_id:id,p_reason:reason});if(r.error)throw r.error;await load();await onChanged();setNotice('تم إلغاء السند وعكس القيد مع الاحتفاظ بمرفقاته.')}
+ async function voidVoucher(values:Record<string,string>){
+  if(busy||!voidTarget)return;const reason=(values.reason||'').trim();if(!reason)return;setBusy(true);setError('');setNotice('');
+  try{const r=await supabase.rpc('accounting_void_voucher',{p_voucher_id:voidTarget.id,p_reason:reason});if(r.error)throw r.error;setVoidTarget(null);await load();await onChanged();setNotice('تم إلغاء السند وعكس القيد مع الاحتفاظ بمرفقاته.')}
   catch(e){setError(friendlyError(e))}finally{setBusy(false)}
  }
 
@@ -137,7 +138,7 @@ export default function AccountingVouchers({type,accounts,onChanged,canManage=tr
    <button className="icon" disabled={!!fileBusy} title="تنزيل PDF" onClick={()=>void generatePdf(x,'download')}><Download/></button>
    <button className="icon" disabled={!!fileBusy} title="فتح نسخة للطباعة" onClick={()=>void generatePdf(x,'print')}><Printer/></button>
    {canManage&&['expense','purchase'].includes(x.voucher_type)&&<label className="icon file-icon" title="رفع فاتورة"><FileUp/><input type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.webp" onChange={e=>{const files=Array.from(e.target.files||[]);e.currentTarget.value='';void addFilesToExisting(x,files)}}/></label>}
-   {canManage&&x.status==='posted'&&<button className="icon" disabled={busy} title="إلغاء وعكس القيد" onClick={()=>void voidVoucher(x.id)}><RotateCcw/></button>}
+   {canManage&&x.status==='posted'&&<button className="icon" disabled={busy} title="إلغاء وعكس القيد" onClick={()=>setVoidTarget(x)}><RotateCcw/></button>}
   </div></td></tr>)}</tbody></table>{!rows.length&&<div className="empty">لا توجد سندات في هذا القسم بعد.</div>}</div></div>
 
   {open&&<div className="modal-backdrop" onMouseDown={e=>{if(!busy&&e.currentTarget===e.target)setOpen(false)}}><form className="modal voucher-modal" onSubmit={create}><div className="modal-head"><div><b>إنشاء {names[form.type]}</b><span>سيتم التحقق من الفترة وترحيل قيد متوازن تلقائيًا.</span></div><button type="button" disabled={busy} onClick={()=>setOpen(false)}><X/></button></div><fieldset disabled={busy}>
@@ -155,5 +156,6 @@ export default function AccountingVouchers({type,accounts,onChanged,canManage=tr
    {attachmentLoading?<div className="loading">جاري تحميل المرفقات...</div>:!attachments.length?<div className="empty"><Paperclip/>لا توجد مرفقات لهذا السند.</div>:attachments.map(a=><article className="voucher-document-row" key={a.id}><FileText/><div><b>{a.title}</b><span>{a.document_kind==='invoice'?'فاتورة':'مستند مؤيد'} · {(Number(a.file_size)/1024/1024).toLocaleString('ar-SA',{maximumFractionDigits:2})} MB · {new Date(a.created_at).toLocaleDateString('ar-SA')}</span></div><button className="secondary" disabled={fileBusy===a.id} onClick={()=>void viewAttachment(a)}><Eye/> فتح</button></article>)}
    {canManage&&['expense','purchase'].includes(attachmentVoucher.voucher_type)&&<label className="voucher-upload-more"><FileUp/><span><b>إضافة فاتورة أخرى</b><small>ترتبط بالسند نفسه وتظل محفوظة مع السجل المحاسبي.</small></span><input type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.webp" onChange={e=>{const files=Array.from(e.target.files||[]);e.currentTarget.value='';void addFilesToExisting(attachmentVoucher,files)}}/></label>}
   </div></section></div>}
+ {voidTarget&&<ActionDialog open danger title={`إلغاء ${names[voidTarget.voucher_type]||'السند'} ${voidTarget.voucher_no}`} description="سيتم إنشاء قيد عكسي مع الاحتفاظ بالسند والمرفقات والسجل الأصلي." busy={busy} onCancel={()=>setVoidTarget(null)} onConfirm={voidVoucher} confirmLabel="إلغاء السند وعكس القيد" fields={[{key:'reason',label:'سبب الإلغاء والعكس',type:'textarea',required:true,maxLength:500,placeholder:'اكتب سببًا واضحًا للتصحيح...'}]}/>}
  </section>
 }
